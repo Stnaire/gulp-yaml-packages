@@ -21,6 +21,10 @@
       "url": "http://mit-license.org/"
     }
   ],
+  "repository" : {
+    "type" : "git",
+    "url" : "https://github.com/Stnaire/gulp-yaml-packages.git"
+  },
   "dependencies": {
     "gulp": "^3.9.1",
     "gulp-if": "^2.0.1",
