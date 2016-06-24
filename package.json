@@ -9,7 +9,7 @@
     "packages"
   ],
   "license": "MIT",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "author": {
     "name": "Julien Pinto",
     "url": "https://github.com/Stnaire",
@@ -21,9 +21,9 @@
       "url": "http://mit-license.org/"
     }
   ],
-  "repository" : {
-    "type" : "git",
-    "url" : "https://github.com/Stnaire/gulp-yaml-packages.git"
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Stnaire/gulp-yaml-packages.git"
   },
   "dependencies": {
     "gulp": "^3.9.1",
