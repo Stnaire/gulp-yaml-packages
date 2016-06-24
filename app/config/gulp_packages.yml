@@ -1,0 +1,41 @@
+#
+# ./app/config/gulp_packages.yml
+#
+imports: 'vendor_packages.yml'
+
+parameters:
+  root_dir: '../../'
+  assets_dir: '%root_dir%/app/Resources/assets'
+
+#
+# Packages definitions
+#
+packages:
+  app:
+    # Package 'app.vendor'
+    vendor:
+      deps: [bootstrap:%_theme%]
+      scripts:
+        output: '%root_dir%/web/js/vendor.js'
+      styles:
+        output: '%root_dir%/web/css/vendor.css'
+
+    # Package 'app.frontend'
+    frontend:
+      scripts:
+        # BAAAD practice. If any non script file is put in the directory, the uglifier may crash.
+        # See the 'Explicit globs' section of the documentation for details.
+        input: '%assets_dir%/scripts/**'
+        output: '%root_dir%/web/js/frontend.js'
+      styles:
+        # More secure than the 'scripts' input.
+        input: '%assets_dir%/styles/**/*.{css,less,scss,sass}'
+        output: '%root_dir%/web/css/frontend.css'
+      misc:
+        input: '%assets_dir%/images/**'
+        output: '%root_dir%/web/images'
+
+
+
+
+

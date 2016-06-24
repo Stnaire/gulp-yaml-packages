@@ -1,0 +1,7 @@
+/app
+/node_modules
+/src
+.bowerrc
+bower.json
+gulpfile.js
+index.html

@@ -1,0 +1,14 @@
+{
+    "name": "example",
+    "description": "",
+    "dependencies": {
+        "jquery": "jquery#3.0.0",
+        "jquery-legacy": "jquery#1.12.4",
+        "bootstrap": "bootstrap#3.3.6"
+    },
+    "authors": [
+        "Julien Pinto <julien.pinto@webeak.fr>"
+    ],
+    "license": "proprietary",
+    "private": true
+}

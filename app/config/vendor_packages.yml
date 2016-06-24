@@ -1,0 +1,47 @@
+#
+# ./app/config/vendor_packages.yml
+#
+
+parameters:
+  root_dir: '../..'
+  assets_dir: '%root_dir%/app/Resources/assets'
+  vendor_dir: '%root_dir%/app/Resources/vendor'
+
+packages:
+  #
+  # jQuery
+  #
+  jquery:
+    -
+      version: 3.0.0
+      scripts: '%vendor_dir%/jquery/dist/jquery.js'
+    -
+      version: 1.12.4
+      scripts: '%vendor_dir%/jquery-legacy/dist/jquery.js'
+
+  #
+  # Bootstrap
+  #
+  bootstrap:
+    -
+      deps: jquery#1.9.1
+      standalone: false
+      scripts: '%vendor_dir%/bootstrap/dist/js/bootstrap.js'
+      styles:
+        input:
+          files: '%vendor_dir%/bootstrap/less/bootstrap.less'
+          processors:
+            cssurlajuster:
+              -
+                from: ../fonts/
+                to: ../fonts/bootstrap/
+      misc:
+        input: '%vendor_dir%/bootstrap/fonts/**'
+        output: '%root_dir%/web/fonts/bootstrap'
+    -
+      standalone: false
+      deps: bootstrap:default
+      theme: green
+      styles: '%assets_dir%/vendor/bootstrap/less/green-theme.less'
+
+
