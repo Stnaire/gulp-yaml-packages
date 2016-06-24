@@ -356,9 +356,9 @@ namespace GP {
                                 output[normalized.name.name] = [];
                             }
                             output[normalized.name.name].push(normalized);
+                            this.normalizePackagesThemes(output[normalized.name.name]);
                         }
                         this.contextOut();
-                        this.normalizePackagesThemes(output[normalized.name.name]);
                     }
                     this.contextOut();
                 }
