@@ -5,13 +5,18 @@ You define packages and how they should be merged in a YAML file, then the modul
 ## Install
 
 Install using node :
-* `$ npm install gulp-yaml-packages`
+```
+npm install gulp-yaml-packages
+```
 
 Add the module to your gulpfile.js : 
-* `var yamlPackages = require('gulp-yaml-packages');`
+```javascript
+var yamlPackages = require('gulp-yaml-packages');
+```
 
-If you want to run the example gulp_packages.yml, download the whole repository and do a : 
+If you want to run the example, download the whole repository and do: 
 * `$ bower install` to install vendor dependencies.
+* `$ gulp` to execute the gulpfile.
 
 ## Options
 

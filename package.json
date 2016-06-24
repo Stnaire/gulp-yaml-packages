@@ -1,5 +1,5 @@
 {
-    "name": "gulpfile-yaml",
+    "name": "gulp-yaml-packages",
     "title": "Your gulpfile driven by a YAML configuration file.",
     "homepage": "https://github.com/Stnaire/gulp-yaml-packages",
     "keywords": [
@@ -9,7 +9,7 @@
         "packages"
     ],
     "license": "MIT",
-    "version": "0.2.0",
+    "version": "1.0.0",
     "author": {
         "name": "Julien Pinto",
         "url": "https://github.com/Stnaire",
