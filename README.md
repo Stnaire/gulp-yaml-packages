@@ -1,6 +1,6 @@
 # Gulp yaml packages
 Allows you to define complex dependency tree with ease for all your projects.
-You define packages and how they should be merged in a YAML file, then the module generates corresponding gulp tasks for you.
+You define packages and how they should be merged in a YAML file then the module generates corresponding gulp tasks for you.
 
 ## Install
 
