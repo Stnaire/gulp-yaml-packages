@@ -1,6 +1,7 @@
 /app
 /node_modules
 /src
+/.idea
 .bowerrc
 bower.json
 gulpfile.js
