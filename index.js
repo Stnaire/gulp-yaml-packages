@@ -711,8 +711,8 @@ var GP;
                             output[normalized.name.name].push(normalized);
                         }
                         this.contextOut();
+                        this.normalizePackagesThemes(output[normalized.name.name]);
                     }
-                    this.normalizePackagesThemes(output[normalized.name.name]);
                     this.contextOut();
                 }
             }
