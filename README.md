@@ -708,10 +708,10 @@ To go further on the theming topic, I would like to share a technique I use to e
 
 When you want to override styles of a library you have basically two solutions : 
 
--  Make a new stylesheet that will be loaded `after` the library one. In this file you'll override the parts you want to change.
+-  Make a new stylesheet that will be loaded after the library one. In this file you'll override the parts you want to change.
 -  If your library is coded in `sass` or `less` ou can recompile it after changing some variables.
 
-When the first one is a obvious, the second one can be trickier than it appear.
+When the first one is obvious, the second one can be trickier than it appear.
 I've came up with the following solution (depending on the language) :
 
 #### In SASS
@@ -735,7 +735,7 @@ To modify the button color without rewriting the `.btn` class or modifying the o
 $primary-color: #00ff00;
 
 // Then import the original library file
-@import "../vendor/my-library/main.scss
+@import "../vendor/my-library/main.scss"
 ```
 
 This will work because of the `!default` attribute on the `$primary-color` variable which indicates the variable must be set only if it doesn't exist yet.
@@ -758,7 +758,7 @@ And the custom theme file :
 // app/my-library-theme.less
 
 // You can import the library BEFORE overriding its variables
-@import "../vendor/my-library/main.scss
+@import "../vendor/my-library/main.less"
 
 // This is legal, the previous import will use this value
 @primary-color: #00ff00;
@@ -805,7 +805,7 @@ my-library:
     styles: 'app/my-library-theme.less'
 ```
 
-Like this you can do `deps: 'my-library:green` without having two copies of the styles.
+Like this you can do `deps: 'my-library:green'` without having two copies of the styles.
 
 ### Explicit globs
 
