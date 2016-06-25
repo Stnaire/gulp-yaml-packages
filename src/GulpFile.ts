@@ -133,6 +133,9 @@ namespace GP {
 
                     files[rt] = Utils.ensureArray(files[rt]);
                     for (var k = 0; k < conf.length; ++k) {
+                        for (var l = 0; l < conf[k].watch.length; ++l) {
+                            files[rt].push(conf[k].watch[l].absolute);
+                        }
                         for (var l = 0; l < conf[k].input.length; ++l) {
                             for (var m = 0; m < conf[k].input[l].files.length; ++m) {
                                 let path = conf[k].input[l].files[m].absolute;

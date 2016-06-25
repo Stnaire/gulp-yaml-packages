@@ -271,6 +271,24 @@ packages:
       ...
 ```
 
+### Custom watches
+
+By default, all files defined in your packages are automatically watched when the `--watch` option is set.
+But, for example, `less` or `sass` files may `import` other files that are not defined in the yaml file, and so, not watched.
+
+To solve this problem, you can add a `watch` key to your `styles` or `scripts` definitions: 
+
+```yaml
+packages:
+  app:
+    styles:
+      watch: 'vendor/bootstrap/less/**/*.less'
+      input: 'vendor/bootstrap/less/bootstrap.less'
+```
+
+Now a change on any `less` file in the `vendor/bootstrap/less` folder will trigger the watcher.
+But only `bootstrap.less` will be compiled and copied.
+
 ## Parameters
 
 Inspired by Symfony, parameters are a very basic replace by key thing.

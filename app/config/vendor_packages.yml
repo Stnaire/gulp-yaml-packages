@@ -28,6 +28,7 @@ packages:
       standalone: false
       scripts: '%vendor_dir%/bootstrap/dist/js/bootstrap.js'
       styles:
+        watch: '%vendor_dir%/bootstrap/less/**/*.less'
         input:
           files: '%vendor_dir%/bootstrap/less/bootstrap.less'
           processors:

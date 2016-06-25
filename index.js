@@ -523,6 +523,7 @@ var GP;
         };
         PackageFile.prototype.mergeDependencies = function (type, configuration, deps) {
             var output = {
+                watch: [],
                 input: [],
                 output: configuration && configuration.output ? Utils.extend({}, configuration.output) : null
             };
@@ -530,6 +531,7 @@ var GP;
                 var dep = deps[i][type];
                 if (Utils.isSet(dep)) {
                     if (output.output !== null) {
+                        Array.prototype.push.apply(output.watch, dep.watch);
                         Array.prototype.push.apply(output.input, dep.input);
                     }
                     else if (this.options.strict) {
@@ -538,6 +540,7 @@ var GP;
                 }
             }
             if (output.output !== null) {
+                Array.prototype.push.apply(output.watch, configuration.watch);
                 Array.prototype.push.apply(output.input, configuration.input);
             }
             else if (this.options.strict && configuration && configuration.input.length) {
@@ -795,6 +798,7 @@ var GP;
             }
         };
         PackageFile.prototype.normalizePackageInputOutput = function (type, raw) {
+            var _this = this;
             var output = null;
             if (!Utils.isSet(raw)) {
                 return null;
@@ -805,6 +809,7 @@ var GP;
             this.contextIn(type);
             if (Utils.isDefined(raw, ['input', 'output'], false)) {
                 output = {
+                    watch: Utils.ensureArray(raw['watch']).map(function (i) { return _this.normalizePath(i); }),
                     input: this.normalizePackageInput(raw['input']),
                     output: this.normalizePackageOutput(raw['output'])
                 };
@@ -1629,6 +1634,9 @@ var GP;
                     var conf = Utils.ensureArray(packages[i][rt]);
                     files[rt] = Utils.ensureArray(files[rt]);
                     for (var k = 0; k < conf.length; ++k) {
+                        for (var l = 0; l < conf[k].watch.length; ++l) {
+                            files[rt].push(conf[k].watch[l].absolute);
+                        }
                         for (var l = 0; l < conf[k].input.length; ++l) {
                             for (var m = 0; m < conf[k].input[l].files.length; ++m) {
                                 var path = conf[k].input[l].files[m].absolute;

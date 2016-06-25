@@ -103,6 +103,7 @@ namespace GP {
             // so the user can know an output may have been forgotten.
             // if (!configuration || !configuration.output) { return null }
             var output: PackageInputOutputConfiguration = {
+                watch: [],
                 input: [],
                 output: configuration && configuration.output ? (Utils.extend({}, configuration.output) as PackageOutputConfiguration) : null
             };
@@ -110,6 +111,7 @@ namespace GP {
                 var dep: PackageInputOutputConfiguration = (<any>deps)[i][type];
                 if (Utils.isSet(dep)) {
                     if (output.output !== null) {
+                        Array.prototype.push.apply(output.watch, dep.watch);
                         Array.prototype.push.apply(output.input, dep.input);
                     } else if (this.options.strict) {
                         Log.warning(
@@ -122,6 +124,7 @@ namespace GP {
                 }
             }
             if (output.output !== null) {
+                Array.prototype.push.apply(output.watch, configuration.watch);
                 Array.prototype.push.apply(output.input, configuration.input);
             } else if (this.options.strict && configuration && configuration.input.length) {
                 Log.warning(
@@ -504,6 +507,7 @@ namespace GP {
             this.contextIn(type);
             if (Utils.isDefined(raw, ['input', 'output'], false)) {
                 output = {
+                    watch: Utils.ensureArray(raw['watch']).map((i: string) => { return this.normalizePath(i) }),
                     input: this.normalizePackageInput(raw['input']),
                     output: this.normalizePackageOutput(raw['output'])
                 };
