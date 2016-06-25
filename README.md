@@ -702,6 +702,111 @@ packages:
 
 will only generate output if another package do `deps: bootstrap`.
 
+### Advanced theming
+
+To go further on the theming topic, I would like to share a technique I use to easily theme libraries.
+
+When you want to override styles of a library you have basically two solutions : 
+
+-  Make a new stylesheet that will be loaded `after` the library one. In this file you'll override the parts you want to change.
+-  If your library is coded in `sass` or `less` ou can recompile it after changing some variables.
+
+When the first one is a obvious, the second one can be trickier than it appear.
+I've came up with the following solution (depending on the language) :
+
+#### In SASS
+
+With the following file in the role of the library :
+
+```sass
+// vendor/my-library/main.scss
+
+$primary-color: #ff0000 !default;
+
+.btn { background: $primary-color }
+```
+
+To modify the button color without rewriting the `.btn` class or modifying the original file, you can simply create a new file :
+
+```sass
+// app/my-library-theme.scss
+
+// First, override the variable you want to change
+$primary-color: #00ff00;
+
+// Then import the original library file
+@import "../vendor/my-library/main.scss
+```
+
+This will work because of the `!default` attribute on the `$primary-color` variable which indicates the variable must be set only if it doesn't exist yet.
+
+#### In LESS
+
+In LESS it's even more powerful as you can set variables **after** they have been used.
+
+```less
+// vendor/my-library/main.less
+
+@primary-color: #ff0000;
+
+.btn { background: @primary-color }
+```
+
+And the custom theme file :
+
+```less
+// app/my-library-theme.less
+
+// You can import the library BEFORE overriding its variables
+@import "../vendor/my-library/main.scss
+
+// This is legal, the previous import will use this value
+@primary-color: #00ff00;
+```
+
+#### The problem with packages
+
+But by doing this, you're replacing a file of the library by one of your own (which then includes the library).
+
+If you define your packages like I did in the <a href="#versions--themes">Versions & themes</a> section, you'll have a problem.
+
+If you define your library like this :
+
+```yaml
+my-library:
+  -
+    theme: default
+    styles: 'vendor/my-library/main.less'
+  -
+    deps: 'my-library:default'
+    theme: green
+    styles: 'app/my-library-theme.less'
+```
+
+When you include `my-library:green` in a package, the library will be compiled and concatenated **`two times`** because files of the `green` and `default` themes will be merged and because `my-library-theme.less` do an `@import`.
+
+You could remove the `deps` key and copy/paste common parts of the two packages, but its ugly and remove a lot of value to the module.
+
+The easiest way I've found is to create a `shared` theme to centralise what is common between themes : 
+
+```yaml
+my-library:
+  -
+    theme: shared
+    scripts: ...
+    misc: ...
+  -
+    deps: 'my-library:shared'
+    theme: default
+    styles: 'vendor/my-library/main.less'
+  -
+    deps: 'my-library:shared'
+    theme: green
+    styles: 'app/my-library-theme.less'
+```
+
+Like this you can do `deps: 'my-library:green` without having two copies of the styles.
+
 ### Explicit globs
 
 As described in the <a href="#glob-patterns">Glob patterns</a> section, you can define a glob pattern as input of a package: 

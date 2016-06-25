@@ -68,7 +68,7 @@ namespace GP {
                                     newInput.files = [];
                                     newOutput.dev.absolute += relativeDir;
                                     newOutput.prod.absolute += relativeDir;
-                                    indexed[relativeDir] = {input: [newInput], output: newOutput};
+                                    indexed[relativeDir] = {watch: [], input: [newInput], output: newOutput};
                                 }
                                 indexed[relativeDir].input[0].files.push({
                                     packageId: path.packageId,
