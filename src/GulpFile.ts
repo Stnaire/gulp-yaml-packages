@@ -131,7 +131,7 @@ namespace GP {
                     let rt = GulpFile.ResourcesTypes[j];
                     let conf: PackageInputOutputConfiguration[] = Utils.ensureArray((<any>packages)[i][rt]);
 
-                    files[rt] = [];
+                    files[rt] = Utils.ensureArray(files[rt]);
                     for (var k = 0; k < conf.length; ++k) {
                         for (var l = 0; l < conf[k].input.length; ++l) {
                             for (var m = 0; m < conf[k].input[l].files.length; ++m) {

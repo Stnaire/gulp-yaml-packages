@@ -282,12 +282,6 @@ var GP;
     var FileSystem = GP.Helpers.FileSystem;
     var Utils = GP.Helpers.Utils;
     var Log = GP.Helpers.Log;
-    var coffee = require('gulp-coffee');
-    var typescript = require('gulp-typescript');
-    var less = require('gulp-less');
-    var sass = require('gulp-sass');
-    var image = require('gulp-image-optimization');
-    var cssurlajuster = require('gulp-css-url-adjuster');
     var ProcessorsManager = (function () {
         function ProcessorsManager() {
             this.configurations = {};
@@ -385,21 +379,21 @@ var GP;
         ProcessorsManager.prototype.getBaseCallbacks = function () {
             return {
                 typescript: function (stream, options) {
-                    return stream.pipe(typescript(options).on('error', Log.error)).js;
+                    return stream.pipe(ProcessorsManager.require('gulp-typescript')(options).on('error', Log.error)).js;
                 },
                 coffee: function (stream, options) {
-                    return stream.pipe(coffee(options).on('error', Log.error));
+                    return stream.pipe(ProcessorsManager.require('gulp-coffee')(options).on('error', Log.error));
                 },
                 sass: function (stream, options) {
-                    return stream.pipe(sass(options).on('error', Log.error));
+                    return stream.pipe(ProcessorsManager.require('gulp-sass')(options).on('error', Log.error));
                 },
                 less: function (stream, options) {
-                    return stream.pipe(less(options).on('error', Log.error));
+                    return stream.pipe(ProcessorsManager.require('gulp-less')(options).on('error', Log.error));
                 },
                 cssurlajuster: function (stream, options) {
                     options = Utils.ensureArray(options);
                     for (var i = 0; i < options.length; ++i) {
-                        stream = stream.pipe(cssurlajuster({
+                        stream = stream.pipe(ProcessorsManager.require('gulp-css-url-adjuster')({
                             replace: [
                                 options[i].from,
                                 options[i].to
@@ -409,7 +403,7 @@ var GP;
                     return stream;
                 },
                 image: function (stream, options) {
-                    return stream.pipe(image(options).on('error', Log.error));
+                    return stream.pipe(ProcessorsManager.require('gulp-image-optimization')(options).on('error', Log.error));
                 }
             };
         };
@@ -446,6 +440,13 @@ var GP;
         ProcessorsManager.prototype.getBaseExecutionOrder = function () {
             return ['typescript', 'coffee', 'sass', 'less', 'cssurlajuster', 'image'];
         };
+        ProcessorsManager.require = function (name) {
+            if (!Utils.isSet(ProcessorsManager.modules[name])) {
+                ProcessorsManager.modules[name] = require(name);
+            }
+            return ProcessorsManager.modules[name];
+        };
+        ProcessorsManager.modules = {};
         return ProcessorsManager;
     }());
     GP.ProcessorsManager = ProcessorsManager;
@@ -1626,7 +1627,7 @@ var GP;
                 for (var j = 0; j < GulpFile.ResourcesTypes.length; ++j) {
                     var rt = GulpFile.ResourcesTypes[j];
                     var conf = Utils.ensureArray(packages[i][rt]);
-                    files[rt] = [];
+                    files[rt] = Utils.ensureArray(files[rt]);
                     for (var k = 0; k < conf.length; ++k) {
                         for (var l = 0; l < conf[k].input.length; ++l) {
                             for (var m = 0; m < conf[k].input[l].files.length; ++m) {

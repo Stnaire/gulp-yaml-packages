@@ -4,14 +4,12 @@ namespace GP {
     import Utils = GP.Helpers.Utils;
     import Log = GP.Helpers.Log;
 
-    var coffee = require('gulp-coffee');
-    var typescript = require('gulp-typescript');
-    var less = require('gulp-less');
-    var sass = require('gulp-sass');
-    var image = require('gulp-image-optimization');
-    var cssurlajuster = require('gulp-css-url-adjuster');
-
     export class ProcessorsManager {
+        /**
+         * Modules used by built-in processors, indexed by name.
+         */
+        static modules: {[key: string]: any} = {};
+
         /**
          * Hardcoded processors list.
          * They can be overridden if the user so desire.
@@ -178,29 +176,29 @@ namespace GP {
                 // Scripts processors
                 //
                 typescript: function(stream: any, options: any): any {
-                    return stream.pipe(typescript(options).on('error', Log.error)).js;
+                    return stream.pipe(ProcessorsManager.require('gulp-typescript')(options).on('error', Log.error)).js;
                 },
 
                 coffee: function(stream: any, options: any): any {
-                    return stream.pipe(coffee(options).on('error', Log.error));
+                    return stream.pipe(ProcessorsManager.require('gulp-coffee')(options).on('error', Log.error));
                 },
 
                 //
                 // Styles processors
                 //
                 sass: function(stream: any, options: any): any {
-                    return stream.pipe(sass(options).on('error', Log.error));
+                    return stream.pipe(ProcessorsManager.require('gulp-sass')(options).on('error', Log.error));
                 },
 
                 less: function(stream: any, options: any): any {
-                    return stream.pipe(less(options).on('error', Log.error));
+                    return stream.pipe(ProcessorsManager.require('gulp-less')(options).on('error', Log.error));
                 },
 
                 // Replace part of paths in css files.
                 cssurlajuster: function(stream, options) {
                     options =  Utils.ensureArray(options);
                     for (var i = 0; i < options.length; ++i) {
-                        stream = stream.pipe(cssurlajuster({
+                        stream = stream.pipe(ProcessorsManager.require('gulp-css-url-adjuster')({
                             replace: [
                                 options[i].from,
                                 options[i].to
@@ -214,7 +212,7 @@ namespace GP {
                 // Images processor
                 //
                 image: function(stream, options) {
-                    return stream.pipe(image(options).on('error', Log.error));
+                    return stream.pipe(ProcessorsManager.require('gulp-image-optimization')(options).on('error', Log.error));
                 }
             };
         }
@@ -269,6 +267,20 @@ namespace GP {
          */
         protected getBaseExecutionOrder(): string[] {
             return ['typescript', 'coffee', 'sass', 'less', 'cssurlajuster', 'image'];
+        }
+
+        /**
+         * Require a module only on demand.
+         * Used for built-in processors to avoid dependency errors.
+         *
+         * @param string name
+         * @returns function
+         */
+        static require(name: string): (options: any) => any {
+            if (!Utils.isSet(ProcessorsManager.modules[name])) {
+                ProcessorsManager.modules[name] = require(name);
+            }
+            return ProcessorsManager.modules[name];
         }
     }
 }
