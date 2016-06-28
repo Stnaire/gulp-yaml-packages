@@ -5,7 +5,8 @@ namespace GP {
     import Log = GP.Helpers.Log;
 
     var globby = require('globby');
-    var streamqueue = require('streamqueue');
+    var series = require('stream-series');
+    var plumber = require('gulp-plumber');
     var maxId = 0;
 
     export abstract class GulpTask {
@@ -60,8 +61,26 @@ namespace GP {
          */
         protected createStream(inputs: GulpfileInputConfiguration[]): any {
             var queue: any = [];
+            var that: GulpTask = this;
+
             for (var i = 0; i < inputs.length; ++i) {
-                let stream: any = this.gulpfile.gulp.src(inputs[i].files);
+                let stream: any = this.gulpfile.gulp.src(inputs[i].files).pipe(plumber(function(error: any) {
+                    var messages: string[] = [];
+                    if (Utils.isObject(error)) {
+                        for (var key in error) {
+                            // Because I have no way to know how the error object is formed, and to get an output
+                            // as readable as possible, only keep strings with no line breaks (to ignore code samples etc).
+                            if (error.hasOwnProperty(key) && Utils.isString(error[key]) && !error[key].match(/\r|\n/)) {
+                                messages.push(" - "+key+" :");
+                                messages.push("'"+Log.Colors.yellow(error[key])+"'\n");
+                            }
+                        }
+                    } else {
+                        messages.push(Utils.asString(error));
+                    }
+                    Log.error.apply(Log, ['An error occured when executing task', "'"+Log.Colors.red(that.name)+"'.\n"].concat(messages));
+                    this.emit('end');
+                }));
                 let processors: any = [];
 
                 if (this.gulpfile.options.verbose) {
@@ -102,7 +121,10 @@ namespace GP {
                 }
                 queue.push(stream);
             }
-            return streamqueue.obj.apply(this, queue);
+            if (queue.length) {
+                return series.apply(this, queue);
+            }
+            return this.gulpfile.gulp.src([]);
         }
 
         /**

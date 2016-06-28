@@ -735,7 +735,7 @@ To modify the button color without rewriting the `.btn` class or modifying the o
 $primary-color: #00ff00;
 
 // Then import the original library file
-@import "../vendor/my-library/main.scss"
+@import "../vendor/my-library/main.scss";
 ```
 
 This will work because of the `!default` attribute on the `$primary-color` variable which indicates the variable must be set only if it doesn't exist yet.
@@ -758,7 +758,7 @@ And the custom theme file :
 // app/my-library-theme.less
 
 // You can import the library BEFORE overriding its variables
-@import "../vendor/my-library/main.less"
+@import "../vendor/my-library/main.less";
 
 // This is legal, the previous import will use this value
 @primary-color: #00ff00;

@@ -4,6 +4,8 @@ namespace GP {
     import Utils = GP.Helpers.Utils;
     import Log = GP.Helpers.Log;
 
+    var plumber = require('gulp-plumber');
+
     export class ProcessorsManager {
         /**
          * Modules used by built-in processors, indexed by name.
@@ -176,22 +178,22 @@ namespace GP {
                 // Scripts processors
                 //
                 typescript: function(stream: any, options: any): any {
-                    return stream.pipe(ProcessorsManager.require('gulp-typescript')(options).on('error', Log.error)).js;
+                    return stream.pipe(ProcessorsManager.require('gulp-typescript')(options)).js;
                 },
 
                 coffee: function(stream: any, options: any): any {
-                    return stream.pipe(ProcessorsManager.require('gulp-coffee')(options).on('error', Log.error));
+                    return stream.pipe(ProcessorsManager.require('gulp-coffee')(options));
                 },
 
                 //
                 // Styles processors
                 //
                 sass: function(stream: any, options: any): any {
-                    return stream.pipe(ProcessorsManager.require('gulp-sass')(options).on('error', Log.error));
+                    return stream.pipe(ProcessorsManager.require('gulp-sass')(options));
                 },
 
                 less: function(stream: any, options: any): any {
-                    return stream.pipe(ProcessorsManager.require('gulp-less')(options).on('error', Log.error));
+                    return stream.pipe(ProcessorsManager.require('gulp-less')(options));
                 },
 
                 // Replace part of paths in css files.
@@ -203,7 +205,7 @@ namespace GP {
                                 options[i].from,
                                 options[i].to
                             ]
-                        }).on('error', Log.error));
+                        }));
                     }
                     return stream;
                 },
@@ -212,7 +214,7 @@ namespace GP {
                 // Images processor
                 //
                 image: function(stream, options) {
-                    return stream.pipe(ProcessorsManager.require('gulp-image-optimization')(options).on('error', Log.error));
+                    return stream.pipe(ProcessorsManager.require('gulp-image-optimization')(options));
                 }
             };
         }

@@ -82,7 +82,7 @@ namespace GP {
                             }
                             this.tasks[rt].push(task);
                             this._gulp.task(task.getName(), (function (t:GulpTask) {
-                                return function () {
+                                return function() {
                                     return t.execute();
                                 };
                             })(task));

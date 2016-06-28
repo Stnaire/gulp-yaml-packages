@@ -282,6 +282,7 @@ var GP;
     var FileSystem = GP.Helpers.FileSystem;
     var Utils = GP.Helpers.Utils;
     var Log = GP.Helpers.Log;
+    var plumber = require('gulp-plumber');
     var ProcessorsManager = (function () {
         function ProcessorsManager() {
             this.configurations = {};
@@ -379,16 +380,16 @@ var GP;
         ProcessorsManager.prototype.getBaseCallbacks = function () {
             return {
                 typescript: function (stream, options) {
-                    return stream.pipe(ProcessorsManager.require('gulp-typescript')(options).on('error', Log.error)).js;
+                    return stream.pipe(ProcessorsManager.require('gulp-typescript')(options)).js;
                 },
                 coffee: function (stream, options) {
-                    return stream.pipe(ProcessorsManager.require('gulp-coffee')(options).on('error', Log.error));
+                    return stream.pipe(ProcessorsManager.require('gulp-coffee')(options));
                 },
                 sass: function (stream, options) {
-                    return stream.pipe(ProcessorsManager.require('gulp-sass')(options).on('error', Log.error));
+                    return stream.pipe(ProcessorsManager.require('gulp-sass')(options));
                 },
                 less: function (stream, options) {
-                    return stream.pipe(ProcessorsManager.require('gulp-less')(options).on('error', Log.error));
+                    return stream.pipe(ProcessorsManager.require('gulp-less')(options));
                 },
                 cssurlajuster: function (stream, options) {
                     options = Utils.ensureArray(options);
@@ -398,12 +399,12 @@ var GP;
                                 options[i].from,
                                 options[i].to
                             ]
-                        }).on('error', Log.error));
+                        }));
                     }
                     return stream;
                 },
                 image: function (stream, options) {
-                    return stream.pipe(ProcessorsManager.require('gulp-image-optimization')(options).on('error', Log.error));
+                    return stream.pipe(ProcessorsManager.require('gulp-image-optimization')(options));
                 }
             };
         };
@@ -1327,7 +1328,8 @@ var GP;
     var Utils = GP.Helpers.Utils;
     var Log = GP.Helpers.Log;
     var globby = require('globby');
-    var streamqueue = require('streamqueue');
+    var series = require('stream-series');
+    var plumber = require('gulp-plumber');
     var maxId = 0;
     var GulpTask = (function () {
         function GulpTask(gulpfile, packageName, configuration, processorsManager) {
@@ -1346,8 +1348,24 @@ var GP;
         };
         GulpTask.prototype.createStream = function (inputs) {
             var queue = [];
+            var that = this;
             for (var i = 0; i < inputs.length; ++i) {
-                var stream = this.gulpfile.gulp.src(inputs[i].files);
+                var stream = this.gulpfile.gulp.src(inputs[i].files).pipe(plumber(function (error) {
+                    var messages = [];
+                    if (Utils.isObject(error)) {
+                        for (var key in error) {
+                            if (error.hasOwnProperty(key) && Utils.isString(error[key]) && !error[key].match(/\r|\n/)) {
+                                messages.push(" - " + key + " :");
+                                messages.push("'" + Log.Colors.yellow(error[key]) + "'\n");
+                            }
+                        }
+                    }
+                    else {
+                        messages.push(Utils.asString(error));
+                    }
+                    Log.error.apply(Log, ['An error occured when executing task', "'" + Log.Colors.red(that.name) + "'.\n"].concat(messages));
+                    this.emit('end');
+                }));
                 var processors = [];
                 if (this.gulpfile.options.verbose) {
                     Log.info(Log.Colors.green('New stream'));
@@ -1382,7 +1400,10 @@ var GP;
                 }
                 queue.push(stream);
             }
-            return streamqueue.obj.apply(this, queue);
+            if (queue.length) {
+                return series.apply(this, queue);
+            }
+            return this.gulpfile.gulp.src([]);
         };
         GulpTask.prototype.prepareInputs = function () {
             var inputs = [];
