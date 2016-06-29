@@ -531,23 +531,23 @@ var GP;
             for (var i = 0; i < deps.length; ++i) {
                 var dep = deps[i][type];
                 if (Utils.isSet(dep)) {
-                    if (output.output !== null) {
-                        Array.prototype.push.apply(output.watch, dep.watch);
-                        Array.prototype.push.apply(output.input, dep.input);
-                    }
-                    else if (this.options.strict) {
-                        Log.warning('Dependency', "'" + Log.Colors.red(deps[i].name.name) + "'", 'defines', "'" + Log.Colors.yellow(type) + "'", "input but no output has been defined on the including package.", this.getContextString());
+                    Array.prototype.push.apply(output.watch, dep.watch);
+                    Array.prototype.push.apply(output.input, dep.input);
+                    if (output.output === null && dep.output) {
+                        output.output = Utils.clone(dep.output);
                     }
                 }
             }
             if (output.output !== null) {
-                Array.prototype.push.apply(output.watch, configuration.watch);
-                Array.prototype.push.apply(output.input, configuration.input);
+                if (configuration !== null) {
+                    Array.prototype.push.apply(output.watch, configuration.watch);
+                    Array.prototype.push.apply(output.input, configuration.input);
+                }
             }
             else if (this.options.strict && configuration && configuration.input.length) {
                 Log.warning('Input', "'" + Log.Colors.red(type) + "'", 'have been defined with no output.', this.getContextString());
             }
-            return (configuration && configuration.output) ? output : null;
+            return output.output !== null && output.input.length ? output : null;
         };
         PackageFile.prototype.getPackageFileConfiguration = function () {
             return this.configuration;
@@ -1123,7 +1123,8 @@ var GP;
                 this.contextOut(2);
             }
         };
-        PackageFile.prototype.mergePackageDependenciesDeclarations = function (config) {
+        PackageFile.prototype.mergePackageDependenciesDeclarations = function (config, stack) {
+            if (stack === void 0) { stack = []; }
             if (config.depsMerged) {
                 return;
             }
@@ -1131,16 +1132,37 @@ var GP;
             for (var j = 0; j < config.deps.length; ++j) {
                 this.contextIn(j.toString());
                 var dep = config.deps[j];
+                var closest = this.findClosestPackage(dep);
                 if (this.options.debug) {
                     Log.info('Package', "'" + Log.Colors.magenta(config.name.name) + "'", 'requires', "'" + Log.Colors.yellow(dep.packageName) + "'", 'version', "'" + Log.Colors.yellow(dep.packageVersion.text || 'any') + "'", 'theme', "'" + Log.Colors.yellow(dep.packageTheme || 'none') + "'", this.getContextString());
                 }
-                var closest = this.findClosestPackage(dep);
                 if (closest !== null) {
-                    this.mergePackageDependenciesDeclarations(closest);
-                    Array.prototype.splice.apply(config.deps, [j, 0].concat(closest.deps));
-                    j += closest.deps.length;
-                    if (this.options.debug) {
-                        Log.info('Resolved in package', "'" + Log.Colors.magenta(closest.name.name) + "'", 'version', "'" + Log.Colors.yellow(closest.version.text || 'any') + "'", 'theme', "'" + Log.Colors.yellow(closest.theme || 'none') + "'");
+                    var str = this.getPackageStringRepresentation(closest);
+                    if (stack.indexOf(str) < 0) {
+                        stack.push(str);
+                        this.mergePackageDependenciesDeclarations(closest, stack);
+                        Array.prototype.splice.apply(config.deps, [j, 0].concat(closest.deps));
+                        j += closest.deps.length;
+                        if (this.options.debug) {
+                            Log.info('Resolved in package', "'" + Log.Colors.magenta(closest.name.name) + "'", 'version', "'" + Log.Colors.yellow(closest.version.text || 'any') + "'", 'theme', "'" + Log.Colors.yellow(closest.theme || 'none') + "'");
+                        }
+                    }
+                    else {
+                        var messages = [
+                            'Circular dependency detected in',
+                            "'" + Log.Colors.red(this.path) + "'.",
+                            "Details of the stack :\n"
+                        ];
+                        for (var j = 0; j < stack.length; ++j) {
+                            if (stack[j] === str) {
+                                Array.prototype.push.apply(messages, [Log.Colors.bgRed.black(' ! '), Log.Colors.red(stack[j]) + "\n"]);
+                            }
+                            else {
+                                Array.prototype.push.apply(messages, ['OK', Log.Colors.magenta(stack[j]) + "\n"]);
+                            }
+                        }
+                        messages.push(Log.Colors.bgRed.black(' ! ') + ' ' + Log.Colors.red(str) + "\n");
+                        Log.warning.apply(null, messages);
                     }
                 }
                 else {
@@ -1296,6 +1318,14 @@ var GP;
         PackageFile.prototype.getPackageFilePathById = function (packageFileId) {
             var conf = this.getPackageFileConfigurationById(packageFileId);
             return conf !== null ? conf.path : null;
+        };
+        PackageFile.prototype.getPackageStringRepresentation = function (configuration) {
+            if (configuration === null) {
+                return '';
+            }
+            return configuration.name.name +
+                (configuration.theme !== null ? (':' + configuration.theme) : '') +
+                (configuration.version.text !== null ? ('#' + configuration.version.text) : '');
         };
         PackageFile.prototype.areSamePackages = function (a, b) {
             return false;
