@@ -62,8 +62,23 @@ namespace GP {
         protected createStream(inputs: GulpfileInputConfiguration[]): any {
             var queue: any = [];
             var that: GulpTask = this;
+            var addedFiles: string[] = [];
 
             for (var i = 0; i < inputs.length; ++i) {
+                if (this.gulpfile.options.verbose) {
+                    Log.info(Log.Colors.green('New stream'));
+                }
+                for (var j = 0; j < inputs[i].files.length; ++j) {
+                    if (addedFiles.indexOf(inputs[i].files[j]) >= 0) {
+                        inputs[i].files.splice(j--, 1);
+                    } else {
+                        addedFiles.push(inputs[i].files[j]);
+                        if (this.gulpfile.options.verbose) {
+                            Log.info('File', "'" + Log.Colors.yellow(inputs[i].files[j]) + "'");
+                        }
+                    }
+                }
+                let processors: any = [];
                 let stream: any = this.gulpfile.gulp.src(inputs[i].files).pipe(plumber(function(error: any) {
                     var messages: string[] = [];
                     if (Utils.isObject(error)) {
@@ -81,14 +96,7 @@ namespace GP {
                     Log.error.apply(Log, ['An error occured when executing task', "'"+Log.Colors.red(that.name)+"'.\n"].concat(messages));
                     this.emit('end');
                 }));
-                let processors: any = [];
 
-                if (this.gulpfile.options.verbose) {
-                    Log.info(Log.Colors.green('New stream'));
-                    for (var j = 0; j < inputs[i].files.length; ++j) {
-                        Log.info('File', "'" + Log.Colors.yellow(inputs[i].files[j]) + "'");
-                    }
-                }
                 if (inputs[i].processors !== null) {
                     for (var cname in inputs[i].processors.processors) {
                         if (inputs[i].processors.processors.hasOwnProperty(cname)) {
