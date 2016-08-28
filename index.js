@@ -1558,6 +1558,7 @@ var GP;
         };
         MiscTask.prototype.execute = function () {
             var subTasks = [];
+            var originalInputs = [];
             for (var i = 0; i < this.configuration.input.length; ++i) {
                 for (var j = 0; j < this.configuration.input[i].files.length; ++j) {
                     var path = this.configuration.input[i].files[j];
@@ -1590,11 +1591,13 @@ var GP;
                                 subTasks.push(new MiscTask(this.gulpfile, this.packageName, indexed[p], this.processorsManager));
                             }
                         }
+                        originalInputs.push(Utils.clone(this.configuration.input[i]));
                         this.configuration.input[i].files.splice(j--, 1);
                     }
                 }
             }
             var stream = _super.prototype.execute.call(this);
+            this.configuration.input = originalInputs;
             for (var i = 0; i < subTasks.length; ++i) {
                 stream = merge(stream, subTasks[i].execute());
             }

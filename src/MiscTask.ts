@@ -51,6 +51,7 @@ namespace GP {
          */
         public execute(): any {
             var subTasks: GulpTask[] = [];
+            var originalInputs: any = [];
 
             for (var i = 0; i < this.configuration.input.length; ++i) {
                 for (var j = 0; j < this.configuration.input[i].files.length; ++j) {
@@ -85,11 +86,13 @@ namespace GP {
                                 subTasks.push(new MiscTask(this.gulpfile, this.packageName, indexed[p], this.processorsManager));
                             }
                         }
+                        originalInputs.push(Utils.clone(this.configuration.input[i]));
                         this.configuration.input[i].files.splice(j--, 1);
                     }
                 }
             }
             var stream = super.execute();
+            this.configuration.input = originalInputs;
             for (var i = 0; i < subTasks.length; ++i) {
                 stream = merge(stream, subTasks[i].execute());
             }
