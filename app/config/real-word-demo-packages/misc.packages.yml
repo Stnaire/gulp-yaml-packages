@@ -1,0 +1,390 @@
+#
+# ./app/config/packages/misc.packages.yml
+#
+parameters:
+  root_dir: '../../..'
+  assets_dir: '%root_dir%/app/Resources/assets'
+  vendor_dir: '%assets_dir%/vendor'
+
+packages:
+  #
+  # Animate CSS
+  # https://daneden.github.io/animate.css/
+  #
+  animate.css:
+    standalone: false
+    styles: '%vendor_dir%/animate.css/animate.min.css'
+
+  #
+  # Autosize
+  # https://github.com/jackmoore/autosize
+  #
+  autosize:
+    standalone: false
+    scripts: '%vendor_dir%/autosize/dist/autosize.js'
+
+  #
+  # Cropper
+  # https://fengyuanchen.github.io/cropperjs/
+  #
+  cropper:
+    -
+      standalone: false
+      theme: shared
+      scripts: '%vendor_dir%/cropper/dist/cropper.js'
+    -
+      standalone: false
+      theme: default
+      deps: cropper:shared
+      styles: '%vendor_dir%/cropper/dist/cropper.css'
+    -
+      standalone: false
+      theme: '%_theme%'
+      deps: cropper:shared
+      styles: '%assets_dir%/app/vendor/cropper/sass/entry-points/%_theme%-theme.scss'
+
+  #
+  # DateJS
+  # http://www.datejs.com/
+  #
+  datejs:
+    standalone: false
+    scripts:
+      input:
+        - '%vendor_dir%/DateJS/build/date.js'
+        - '%vendor_dir%/DateJS/build/i18n/fr-FR.js'
+        - '%vendor_dir%/DateJS/build/i18n/es-ES.js'
+        - '%vendor_dir%/DateJS/build/i18n/de-DE.js'
+
+  #
+  # Dropzone
+  # https://gitlab.com/meno/dropzone
+  #
+  dropzone:
+    -
+      standalone: false
+      theme: shared
+      scripts:
+        input:
+          - '%vendor_dir%/dropzone/dist/dropzone.js'
+          - '%assets_dir%/app/vendor/dropzone/js/no-auto-discover.js'
+      styles: '%vendor_dir%/dropzone/dist/basic.css'
+    -
+      standalone: false
+      theme: default
+      deps: dropzone:shared
+      styles: '%vendor_dir%/dropzone/dist/dropzone.css'
+    -
+      standalone: false
+      theme: '%_theme%'
+      deps: dropzone:shared
+      styles: '%assets_dir%/app/vendor/dropzone/sass/entry-points/%_theme%-theme.scss'
+
+  #
+  # Easy-pie-chart
+  # https://github.com/rendro/easy-pie-chart
+  #
+  # There is also a jQuery version in the 'jQuery' packages.
+  #
+  easy-pie-chart:
+    standalone: false
+    scripts: '%vendor_dir%/jquery.easy-pie-chart/dist/easypiechart.js'
+
+  #
+  # Eve
+  # https://github.com/tomasAlabes/eve
+  #
+  eve:
+    standalone: false
+    scripts: '%vendor_dir%/eve-raphael/eve.js'
+
+  #
+  # Fancybox
+  # https://github.com/fancyapps/fancybox
+  #
+  fancybox:
+    standalone: false
+    styles: '%vendor_dir%/fancybox/dist/jquery.fancybox.css'
+    scripts: '%vendor_dir%/fancybox/dist/jquery.fancybox.js'
+
+  #
+  # Fastclick
+  # https://github.com/ftlabs/fastclick
+  #
+  fastclick:
+    standalone: false
+    scripts: '%vendor_dir%/fastclick/lib/fastclick.js'
+
+  #
+  # FitText
+  # https://github.com/davatron5000/FitText.js
+  #
+  fittext:
+    standalone: false
+    scripts: '%vendor_dir%/FitText.js/jquery.fittext.js'
+
+  #
+  # Font-awesome
+  # http://fontawesome.io
+  #
+  font-awesome:
+    standalone: false
+    styles:
+      input:
+        files: '%vendor_dir%/font-awesome/css/font-awesome.css'
+        processors:
+          cssurladjuster:
+            replace: [../fonts/, ../../../vendor/font-awesome/fonts/]
+    misc:
+      input: '%vendor_dir%/font-awesome/fonts/**'
+      output: '%root_dir%/web/vendor/font-awesome/fonts'
+
+  #
+  # Froala
+  # https://www.froala.com
+  #
+  froala:
+    standalone: false
+    styles:
+      input:
+        - '%vendor_dir%/froala/css/froala_editor.pkgd.min.css'
+        - '%vendor_dir%/froala/css/themes/gray.css'
+    scripts:
+      input:
+        - '%vendor_dir%/froala/js/froala_editor.pkgd.js'
+        - '%vendor_dir%/froala/js/languages/fr.js'
+
+  #
+  # Fullcalendar
+  # https://fullcalendar.io/
+  #
+  fullcalendar:
+    standalone: false
+    scripts:
+      input:
+        - '%vendor_dir%/fullcalendar/dist/fullcalendar.js'
+        - '%vendor_dir%/fullcalendar/dist/lang/fr.js'
+        - '%vendor_dir%/fullcalendar/dist/lang/es.js'
+        - '%vendor_dir%/fullcalendar/dist/lang/de.js'
+        - '%vendor_dir%/fullcalendar/dist/lang/it.js'
+    styles: '%vendor_dir%/fullcalendar/dist/fullcalendar.css'
+
+  #
+  # Gauge.js
+  # https://github.com/bernii/gauge.js
+  #
+  gauge.js:
+    standalone: false
+    scripts: '%vendor_dir%/gauge.js/dist/gauge.js'
+
+  #
+  # Google code prettify
+  # https://github.com/google/code-prettify
+  #
+  google-code-prettify:
+    standalone: false
+    scripts: '%vendor_dir%/google-code-prettify/bin/prettify.min.js'
+    styles: '%vendor_dir%/google-code-prettify/bin/prettify.min.css'
+
+  #
+  # iCheck
+  # https://github.com/fronteed/icheck
+  #
+  icheck:
+    -
+      standalone: false
+      theme: shared
+      scripts: '%vendor_dir%/iCheck/icheck.js'
+      misc:
+        input: '%vendor_dir%/iCheck/skins/**/*.png'
+        output: '%root_dir%/web/vendor/icheck/images'
+    -
+      standalone: false
+      theme: '%_theme%'
+      deps: icheck:shared
+      styles:
+        input:
+          files: '%assets_dir%/app/vendor/icheck/sass/entry-points/%_theme%-theme.scss'
+          processors:
+            cssurladjuster:
+              prepend: ../../../vendor/icheck/images/flat/
+
+  #
+  # JSZip
+  # https://github.com/Stuk/jszip
+  #
+  jszip:
+    standalone: false
+    scripts: '%vendor_dir%/jszip/dist/jszip.js'
+
+  #
+  # Modernizr
+  # https://modernizr.com/
+  #
+  # It cannot be included using bower because there is no precompiled version of it.
+  # If you want to use modernizr you have to create a custom build and put it in modernizr/modernizr-custom.js.
+  #
+  modernizr:
+    standalone: false
+    scripts: '%vendor_dir%/Modernizr/modernizr.custom.js'
+
+  #
+  # Moment
+  # https://momentjs.com
+  #
+  moment:
+    standalone: false
+    scripts: '%vendor_dir%/moment/moment.js'
+
+  moment.timezone:
+    standalone: false
+    deps: moment
+    scripts: '%vendor_dir%/moment-timezone/builds/moment-timezone-with-data-2012-2022.js'
+
+  moment.fr:
+    standalone: false
+    deps: moment
+    scripts: '%vendor_dir%/moment/locale/fr.js'
+
+  moment.es:
+    standalone: false
+    deps: moment
+    scripts: '%vendor_dir%/moment/locale/es.js'
+
+  moment.de:
+    standalone: false
+    deps: moment
+    scripts: '%vendor_dir%/moment/locale/de.js'
+
+  #
+  # Normalize.css
+  # https://github.com/necolas/normalize.css/
+  #
+  normalize.css:
+    standalone: false
+    styles: '%vendor_dir%/normalize-css/normalize.css'
+
+  #
+  # NProgress
+  # https://github.com/rstacruz/nprogress
+  #
+  nprogress:
+    -
+      standalone: false
+      theme: shared
+      scripts: '%vendor_dir%/nprogress/nprogress.js'
+      styles: '%vendor_dir%/nprogress/nprogress.css'
+    -
+      standalone: false
+      theme: '%_theme%'
+      deps: nprogress:shared
+      styles: '%assets_dir%/app/vendor/nprogress/sass/entry-points/%_theme%-theme.scss'
+
+  #
+  # PDFMake
+  # https://github.com/bpampuch/pdfmake
+  #
+  pdfmake:
+    standalone: false
+    scripts:
+      input:
+        - '%vendor_dir%/pdfmake/build/pdfmake.js'
+        - '%vendor_dir%/pdfmake/build/vfs_fonts.js'
+
+  #
+  # PDFMake
+  # https://github.com/bpampuch/pdfmake
+  #
+  php-date-formatter:
+    standalone: false
+    scripts: '%vendor_dir%/php-date-formatter/js/php-date-formatter.js'
+
+  #
+  # PNotify
+  # https://github.com/sciactive/pnotify
+  #
+  pnotify:
+    standalone: false
+    styles:
+      input:
+        - '%vendor_dir%/pnotify/dist/pnotify.css'
+        - '%vendor_dir%/pnotify/dist/pnotify.brighttheme.css'
+    scripts: '%vendor_dir%/pnotify/dist/pnotify.js'
+
+  #
+  # PreloadJS
+  # http://www.createjs.com/preloadjs
+  #
+  preloadjs:
+    standalone: false
+    scripts: '%vendor_dir%/PreloadJS/lib/preloadjs-0.6.2.min.js'
+
+  #
+  # Raphaël
+  # https://github.com/DmitryBaranovskiy/raphael
+  #
+  raphael:
+    standalone: false
+    deps: eve
+    scripts: '%vendor_dir%/raphael/raphael.no-deps.js'
+
+  #
+  # RequireJS
+  # http://requirejs.org/
+  #
+  requirejs:
+    standalone: false
+    scripts: '%vendor_dir%/requirejs/require.js'
+
+  #
+  # Skycons
+  # https://darkskyapp.github.io/skycons/
+  #
+  skycons:
+    standalone: false
+    scripts: '%vendor_dir%/skycons/skycons.js'
+
+  #
+  # Switchery
+  # https://github.com/abpetkov/switchery
+  #
+  switchery:
+    standalone: false
+    scripts: '%vendor_dir%/switchery/dist/switchery.js'
+    styles: '%vendor_dir%/switchery/dist/switchery.css'
+
+  #
+  # FitText
+  # https://github.com/davatron5000/FitText.js
+  #
+  textfit:
+    standalone: false
+    scripts: '%vendor_dir%/textfit/textFit.js'
+
+  #
+  # Toastr
+  # https://github.com/CodeSeven/toastr
+  #
+  toastr:
+    standalone: false
+    styles: '%vendor_dir%/toastr/toastr.scss'
+    scripts: '%vendor_dir%/toastr/toastr.js'
+
+  #
+  # Transitionize
+  # https://github.com/abpetkov/transitionize
+  #
+  transitionize:
+    standalone: false
+    scripts: '%vendor_dir%/transitionize/dist/transitionize.js'
+
+  #
+  # Validator
+  # https://github.com/yairEO/validator
+  #
+  validator:
+    standalone: false
+    scripts:
+      input:
+        - '%vendor_dir%/validator/validator.js'
+        - '%vendor_dir%/validator/multifield.js'

@@ -4,10 +4,10 @@ namespace GP {
     import Utils = GP.Helpers.Utils;
     import Log = GP.Helpers.Log;
 
-    var globby = require('globby');
-    var series = require('stream-series');
-    var plumber = require('gulp-plumber');
-    var maxId = 0;
+    let globby = require('globby');
+    let series = require('stream-series');
+    let plumber = require('gulp-plumber');
+    let maxId = 0;
 
     export abstract class GulpTask {
         /**
@@ -56,19 +56,20 @@ namespace GP {
         /**
          * Do the 'gulp work', create a stream for each input, execute its processors and merge everything together.
          *
-         * @param GulpfileInputConfiguration[] inputs
+         * @param {GulpfileInputConfiguration[]} inputs
+         *
          * @returns object
          */
         protected createStream(inputs: GulpfileInputConfiguration[]): any {
-            var queue: any = [];
-            var that: GulpTask = this;
-            var addedFiles: string[] = [];
+            let queue: any = [];
+            let that: GulpTask = this;
+            let addedFiles: string[] = [];
 
-            for (var i = 0; i < inputs.length; ++i) {
+            for (let i = 0; i < inputs.length; ++i) {
                 if (this.gulpfile.options.verbose) {
                     Log.info(Log.Colors.green('New stream'));
                 }
-                for (var j = 0; j < inputs[i].files.length; ++j) {
+                for (let j = 0; j < inputs[i].files.length; ++j) {
                     if (addedFiles.indexOf(inputs[i].files[j]) >= 0) {
                         inputs[i].files.splice(j--, 1);
                     } else {
@@ -80,9 +81,9 @@ namespace GP {
                 }
                 let processors: any = [];
                 let stream: any = this.gulpfile.gulp.src(inputs[i].files).pipe(plumber(function(error: any) {
-                    var messages: string[] = [];
+                    let messages: string[] = [];
                     if (Utils.isObject(error)) {
-                        for (var key in error) {
+                        for (let key in error) {
                             // Because I have no way to know how the error object is formed, and to get an output
                             // as readable as possible, only keep strings with no line breaks (to ignore code samples etc).
                             if (error.hasOwnProperty(key) && Utils.isString(error[key]) && !error[key].match(/\r|\n/)) {
@@ -98,7 +99,7 @@ namespace GP {
                 }));
 
                 if (inputs[i].processors !== null) {
-                    for (var cname in inputs[i].processors.processors) {
+                    for (let cname in inputs[i].processors.processors) {
                         if (inputs[i].processors.processors.hasOwnProperty(cname)) {
                             processors.push({
                                 callback: cname,
@@ -109,7 +110,7 @@ namespace GP {
                     processors.sort((a:PackageFileProcessorConfiguration, b:PackageFileProcessorConfiguration) => {
                         return inputs[i].processors.executionOrder.indexOf(a.name) - inputs[i].processors.executionOrder.indexOf(b.name);
                     });
-                    for (var j = 0; j < processors.length; ++j) {
+                    for (let j = 0; j < processors.length; ++j) {
                         if (this.gulpfile.options.verbose) {
                             Log.info(
                                 'Processor', "'" + Log.Colors.yellow(processors[j].callback) + "'",
@@ -142,14 +143,14 @@ namespace GP {
          * @returns GulpfileInputConfiguration[]
          */
         private prepareInputs(): any {
-            var inputs: GulpfileInputConfiguration[] = [];
-            var currentInput: GulpfileInputConfiguration = {files: [], processors: null};
+            let inputs: GulpfileInputConfiguration[] = [];
+            let currentInput: GulpfileInputConfiguration = {files: [], processors: null};
 
-            for (var i = 0; i < this.configuration.input.length; ++i) {
-                for (var j = 0; j < this.configuration.input[i].files.length; ++j) {
+            for (let i = 0; i < this.configuration.input.length; ++i) {
+                for (let j = 0; j < this.configuration.input[i].files.length; ++j) {
                     let path = this.configuration.input[i].files[j];
                     let files: string[] = path.isGlob ? globby.sync(path.absolute) : [path.absolute];
-                    for (var k = 0; k < files.length; ++k) {
+                    for (let k = 0; k < files.length; ++k) {
                         if (FileSystem.fileExists(files[k])) {
                             let resolvedConfiguration = this.processorsManager.resolve(
                                 files[k], path.packageId, this.configuration.input[i].processors

@@ -1,0 +1,16 @@
+#
+# ./app/config/packages/ie.packages.yml
+#
+parameters:
+  root_dir: '../../..'
+  assets_dir: '%root_dir%/app/Resources/assets'
+  vendor_dir: '%assets_dir%/vendor'
+
+packages:
+  #
+  # IE < 9
+  #
+  ie-lt-9:
+    scripts:
+      input: '%vendor_dir%/html5shiv/dist/html5shiv.js'
+      output: '%root_dir%/web/js/ielt9.js'

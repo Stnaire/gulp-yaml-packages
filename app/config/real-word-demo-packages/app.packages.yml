@@ -1,0 +1,92 @@
+#
+# ./app/config/app.packages.yml
+#
+# The following file is a "real world" usage example I used in a Symfony project.
+# The idea is to compile every styles in a "app.css" and every scripts in a "app.js".
+# Same for vendors with a "vendor.css" and "vendor.js".
+#
+# I used SASS for styles, one single SASS includes everything needed for the app.
+# This file is called
+#
+imports:
+  - '%root_dir%/app/config/packages/vendors.packages.yml'
+
+parameters:
+  root_dir: '../../..'
+  web_dir: '%root_dir%/web/app/'
+  assets_dir: '%root_dir%/src/AppBundle/Resources/assets/'
+
+#
+# Custom options for the typescript compiler
+#
+processors:
+  -
+    name: typescript
+    extensions: [ts]
+    options:
+      noImplicitAny: false
+
+#
+# Packages definitions
+#
+packages:
+  #
+  # Frontend packages
+  #
+  "app.frontend":
+    # Package 'app.frontend.vendor'
+    vendor:
+      deps:
+        - jquery
+        - jquery.backstretch
+        - jquery.datetimepicker:%_theme%
+        - bootstrap:%_theme%
+        - owl-carousel:%_theme%
+        - font-awesome
+        - revolution-slider
+        - fancybox
+        - toastr
+        - modernizr
+        - preloadjs
+        - jquery.fileupload:%_theme%
+      scripts:
+        output: '%web_dir%/js/vendor.js'
+      styles:
+        output: '%web_dir%/css/vendor.css'
+
+    # Package 'app.frontend.assets'
+    assets:
+      -
+        theme: shared
+        standalone: false
+        scripts:
+          watch: '%assets_dir%/scripts/**/*.{js,ts,coffee}'
+          input:
+            #
+            # Here modules are defined in multiple lines to handle priority.
+            #
+            # Files at the root of the "modules" directory have to be included first.
+            # Then the common modules
+            # Then frontend specific modules
+            # And finally other scripts that might not have been included by previous rules.
+            #
+            - '%assets_dir%/scripts/ts/modules/*.ts'
+            - '%assets_dir%/scripts/ts/modules/common/**/*.ts'
+            - '%assets_dir%/scripts/ts/modules/frontend/**/*.ts'
+            - '%assets_dir%/scripts/**/*.{js,ts,coffee}'
+          output: '%web_dir%/js/app.js'
+        styles:
+          # The input is defined below, on the theme "%_theme%" which will be replaced by your theme.
+          watch: '%assets_dir%/styles/**/*.{css,less,scss,sass}'
+          output: '%web_dir%/css/app.css'
+        misc:
+          -
+            input: '%assets_dir%/images/frontend/**'
+            output: '%web_dir%/images/frontend'
+          -
+            input: '%assets_dir%/videos/**'
+            output: '%web_dir%/videos'
+      -
+        deps: 'app.frontend.assets:shared'
+        theme: '%_theme%'
+        styles: '%assets_dir%/styles/sass/frontend/entry-points/root.%_theme%.scss'

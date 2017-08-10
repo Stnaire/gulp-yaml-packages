@@ -3,8 +3,8 @@ namespace GP {
     import Utils = GP.Helpers.Utils;
     import FileSystem = GP.Helpers.FileSystem;
 
-    var globby = require('globby');
-    var merge = require('merge-stream');
+    let globby = require('globby');
+    let merge = require('merge-stream');
 
     export class MiscTask extends GulpTask {
         /**
@@ -19,7 +19,8 @@ namespace GP {
         /**
          * See: GulpTask::createStream().
          *
-         * @param GulpfileInputConfiguration[] inputs
+         * @param {GulpfileInputConfiguration[]} inputs
+         *
          * @returns object
          */
         protected createStream(inputs: GulpfileInputConfiguration[]): any {
@@ -50,16 +51,16 @@ namespace GP {
          * When a file generates a sub task, it is removed from the current task's input.
          */
         public execute(): any {
-            var subTasks: GulpTask[] = [];
-            var originalInputs: any = [];
+            let subTasks: GulpTask[] = [];
+            let originalInputs: any = [];
 
-            for (var i = 0; i < this.configuration.input.length; ++i) {
-                for (var j = 0; j < this.configuration.input[i].files.length; ++j) {
+            for (let i = 0; i < this.configuration.input.length; ++i) {
+                for (let j = 0; j < this.configuration.input[i].files.length; ++j) {
                     let path = this.configuration.input[i].files[j];
                     if (path.isGlob && path.globBase) {
                         let indexed: {[key: string]: PackageInputOutputConfiguration} = {};
                         let files: string[] = globby.sync(path.absolute);
-                        for (var k = 0; k < files.length; ++k) {
+                        for (let k = 0; k < files.length; ++k) {
                             if (!FileSystem.isDirectory(files[k])) {
                                 let relativeDir = FileSystem.getDirectoryName(files[k]).substring(path.globBase.length);
                                 if (!Utils.isSet(indexed[relativeDir])) {
@@ -81,7 +82,7 @@ namespace GP {
                                 });
                             }
                         }
-                        for (var p in indexed) {
+                        for (let p in indexed) {
                             if (indexed.hasOwnProperty(p)) {
                                 subTasks.push(new MiscTask(this.gulpfile, this.packageName, indexed[p], this.processorsManager));
                             }
@@ -91,9 +92,9 @@ namespace GP {
                     }
                 }
             }
-            var stream = super.execute();
+            let stream = super.execute();
             this.configuration.input = originalInputs;
-            for (var i = 0; i < subTasks.length; ++i) {
+            for (let i = 0; i < subTasks.length; ++i) {
                 stream = merge(stream, subTasks[i].execute());
             }
             return stream;

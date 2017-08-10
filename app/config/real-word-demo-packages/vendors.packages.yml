@@ -1,0 +1,14 @@
+#
+# ./app/config/packages/vendor.packages.yml
+#
+imports:
+  - '%root_dir%/app/config/packages/misc.packages.yml'
+  - '%root_dir%/app/config/packages/jquery.packages.yml'
+  - '%root_dir%/app/config/packages/bootstrap.packages.yml'
+  - '%root_dir%/app/config/packages/charts.packages.yml'
+  - '%root_dir%/app/config/packages/sliders.packages.yml'
+  - '%root_dir%/app/config/packages/ie.packages.yml'
+
+parameters:
+  root_dir: '../../..'
+

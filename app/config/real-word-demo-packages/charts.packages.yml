@@ -1,0 +1,53 @@
+#
+# ./app/config/packages/charts.packages.yml
+#
+parameters:
+  root_dir: '../../..'
+  assets_dir: '%root_dir%/app/Resources/assets'
+  vendor_dir: '%assets_dir%/vendor'
+
+packages:
+  #
+  # Chart JS
+  # https://github.com/chartjs/Chart.js
+  #
+  chart.js:
+    standalone: false
+    scripts: '%vendor_dir%/Chart.js/dist/Chart.js'
+
+  #
+  # ECharts
+  # https://github.com/ecomfe/echarts
+  #
+  echarts:
+    standalone: false
+    scripts: '%vendor_dir%/echarts/dist/echarts.js'
+
+  #
+  # Flot
+  # http://www.flotcharts.org/
+  #
+  flot:
+    standalone: false
+    deps: jquery
+    scripts:
+      input:
+        - '%vendor_dir%/Flot/jquery.flot.js'
+        - '%vendor_dir%/Flot/jquery.flot.pie.js'
+        - '%vendor_dir%/Flot/jquery.flot.time.js'
+        - '%vendor_dir%/Flot/jquery.flot.stack.js'
+        - '%vendor_dir%/Flot/jquery.flot.resize.js'
+        # Plugins
+        - '%vendor_dir%/flot.orderbars/js/jquery.flot.orderBars.js'
+        - '%vendor_dir%/flot-spline/js/jquery.flot.spline.min.js'
+        - '%vendor_dir%/flot.curvedlines/curvedLines.js'
+
+  #
+  # Morris.js
+  # https://github.com/morrisjs/morris.js
+  #
+  morris.js:
+    standalone: false
+    deps: [jquery, raphael]
+    scripts: '%vendor_dir%/morris.js/morris.js'
+    styles: '%vendor_dir%/morris.js/morris.css'

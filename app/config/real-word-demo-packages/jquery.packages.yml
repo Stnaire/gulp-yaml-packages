@@ -1,0 +1,375 @@
+#
+# ./app/config/packages/jquery.packages.yml
+#
+parameters:
+  root_dir: '../../..'
+  assets_dir: '%root_dir%/app/Resources/assets'
+  vendor_dir: '%assets_dir%/vendor'
+
+packages:
+  #
+  # jQuery
+  # https://jquery.com/
+  #
+  jquery:
+    standalone: false
+    scripts:
+      input:
+        - '%vendor_dir%/jquery/dist/jquery.js'
+        # Some extensions
+        - '%assets_dir%/app/vendor/jquery/js/jquery.easing.js'
+        - '%assets_dir%/app/vendor/jquery/js/naturalWidthHeight.jquery.js'
+
+  #
+  # After resize
+  # https://github.com/roxeteer/jquery-afterresize
+  #
+  jquery.after-resize:
+    standalone: false
+    deps: jquery
+    scripts: '%vendor_dir%/jquery-afterresize/jquery.afterresize.js'
+
+  #
+  # Autocomplete
+  # https://github.com/devbridge/jQuery-Autocomplete
+  #
+  jquery.autocomplete:
+    -
+      theme: shared
+      deps: jquery
+      standalone: false
+      scripts: '%vendor_dir%/devbridge-autocomplete/dist/jquery.autocomplete.js'
+    -
+      standalone: false
+      deps: 'jquery.autocomplete:shared'
+      theme: '%_theme%'
+      styles: '%assets_dir%/app/vendor/jquery.autocomplete/sass/entry-points/%_theme%-theme.scss'
+
+  #
+  # Backstretch
+  # https://github.com/jquery-backstretch/jquery-backstretch
+  #
+  jquery.backstretch:
+    standalone: false
+    deps: jquery
+    scripts: '%vendor_dir%/jquery-backstretch/jquery.backstretch.js'
+
+   #
+  # Datatables
+  # https://datatables.net/
+  #
+  jquery.datatables:
+    -
+      standalone: false
+      deps: jquery
+      theme: shared
+      scripts:
+        input:
+          - '%vendor_dir%/datatables.net/js/jquery.dataTables.js'
+          - '%vendor_dir%/datatables.net-bs/js/dataTables.bootstrap.min.js'
+          - '%vendor_dir%/datatables.net-buttons/js/dataTables.buttons.min.js'
+          - '%vendor_dir%/datatables.net-buttons-bs/js/buttons.bootstrap.min.js'
+          - '%vendor_dir%/datatables.net-buttons/js/buttons.flash.min.js'
+          - '%vendor_dir%/datatables.net-buttons/js/buttons.html5.min.js'
+          - '%vendor_dir%/datatables.net-buttons/js/buttons.print.min.js'
+          - '%vendor_dir%/datatables.net-fixedheader/js/dataTables.fixedHeader.min.js'
+          - '%vendor_dir%/datatables.net-keytable/js/dataTables.keyTable.min.js'
+          - '%vendor_dir%/datatables.net-responsive/js/dataTables.responsive.min.js'
+          - '%vendor_dir%/datatables.net-responsive-bs/js/responsive.bootstrap.js'
+          - '%vendor_dir%/datatables.net-scroller/js/dataTables.scroller.min.js'
+      styles:
+        input:
+          - '%vendor_dir%/datatables.net-bs/css/dataTables.bootstrap.min.css'
+          - '%vendor_dir%/datatables.net-buttons-bs/css/buttons.bootstrap.min.css'
+          - '%vendor_dir%/datatables.net-fixedheader-bs/css/fixedHeader.bootstrap.min.css'
+          - '%vendor_dir%/datatables.net-responsive-bs/css/responsive.bootstrap.min.css'
+          - '%vendor_dir%/datatables.net-scroller-bs/css/scroller.bootstrap.min.css'
+    -
+      standalone: false
+      theme: '%_theme%'
+      deps: jquery.datatables:shared
+      styles: '%assets_dir%/app/vendor/datatables/sass/entry-points/%_theme%-theme.scss'
+
+  #
+  # DatetimePicker
+  # https://github.com/xdan/datetimepicker
+  #
+  jquery.datetimepicker:
+    -
+      theme: shared
+      deps: jquery
+      standalone: false
+      scripts: '%vendor_dir%/datetimepicker/build/jquery.datetimepicker.full.js'
+    -
+      standalone: false
+      deps: jquery.datetimepicker:shared
+      theme: default
+      styles: '%assets_dir%/app/vendor/jquery.datetimepicker/sass/jquery.datetimepicker.scss'
+    -
+      standalone: false
+      deps: jquery.datetimepicker:shared
+      theme: '%_theme%'
+      styles: '%assets_dir%/app/vendor/jquery.datetimepicker/sass/entry-points/%_theme%-theme.scss'
+
+  #
+  # Easy-pie-chart
+  # https://github.com/rendro/easy-pie-chart
+  #
+  # There is also a vanilla version in the 'misc' packages.
+  #
+  jquery.easy-pie-chart:
+    standalone: false
+    deps: jquery
+    scripts: '%vendor_dir%/jquery.easy-pie-chart/dist/jquery.easypiechart.js'
+
+  #
+  # Jquery File Upload
+  # https://github.com/blueimp/jQuery-File-Upload
+  #
+  jquery.fileupload:
+    -
+      standalone: false
+      theme: shared
+      deps: [jquery, jquery.ui.widget]
+      styles: '%vendor_dir%/blueimp-file-upload/css/jquery.fileupload.css'
+      scripts:
+        input:
+          - '%vendor_dir%/blueimp-load-image/js/load-image.all.min.js'
+          - '%vendor_dir%/jquery.iframe-transport/jquery.iframe-transport.js'
+          - '%vendor_dir%/blueimp-file-upload/js/jquery.fileupload.js'
+          - '%vendor_dir%/blueimp-file-upload/js/jquery.fileupload-process.js'
+          - '%vendor_dir%/blueimp-file-upload/js/jquery.fileupload-image.js'
+          - '%vendor_dir%/blueimp-canvas-to-blob/js/canvas-to-blob.js'
+    -
+      standalone: false
+      deps: jquery.fileupload:shared
+      theme: '%_theme%'
+      styles:
+        watch: '%assets_dir%/app/vendor/jquery.fileupload/sass/**/*.scss'
+        input: '%assets_dir%/app/vendor/jquery.fileupload/sass/entry-points/%_theme%-theme.scss'
+
+  #
+  # jQuery hotkeys
+  # http://github.com/jeresig/jquery.hotkeys
+  #
+  jquery.hotkeys:
+    standalone: false
+    deps: jquery
+    scripts: '%vendor_dir%/jquery.hotkeys/jquery.hotkeys.js'
+
+  #
+  # jQuery iframe support
+  # https://github.com/cmlenz/jquery-iframe-transport
+  #
+  jquery.iframe-transport:
+    standalone: false
+    deps: jquery
+    scripts: '%vendor_dir%/jquery.iframe-transport/jquery.iframe-transport.js'
+
+  #
+  # jQuery input mask
+  # https://github.com/RobinHerbots/Inputmask
+  #
+  jquery.inputmask:
+    standalone: false
+    deps: jquery
+    scripts: '%vendor_dir%/jquery.inputmask/dist/jquery.inputmask.bundle.js'
+
+  #
+  # Ion.RangeSlider
+  # https://github.com/IonDen/ion.rangeSlider/
+  #
+  jquery.ion-range-slider:
+    -
+      theme: shared
+      deps: [jquery, normalize.css]
+      standalone: false
+      scripts: '%vendor_dir%/ion.rangeSlider/js/ion.rangeSlider.js'
+      styles: '%vendor_dir%/ion.rangeSlider/css/ion.rangeSlider.css'
+      misc:
+        input: '%vendor_dir%/ion.rangeSlider/img/**'
+        output: '%root_dir%/web/vendor/ionrangeslider/images'
+    -
+      standalone: false
+      deps: jquery.ion-range-slider:shared
+      theme: default
+      styles:
+        input:
+          files: '%vendor_dir%/ion.rangeSlider/css/ion.rangeSlider.skinFlat.css'
+          processors:
+            cssurladjuster:
+              replace: ['../img/', '../../vendor/ionrangeslider/images/']
+    -
+      standalone: false
+      deps: jquery.ion-range-slider:shared
+      theme: '%_theme%'
+      styles:
+        input:
+          files: '%assets_dir%/app/vendor/jquery.ion-range-slider/sass/entry-points/%_theme%-theme.scss'
+          processors:
+            cssurladjuster:
+              replace: ['../img/', '../../vendor/ionrangeslider/images/']
+
+  #
+  # jQuery Vector Map
+  # https://github.com/manifestinteractive/jqvmap#jquery-vector-map
+  #
+  jquery.jqvmap:
+    standalone: false
+    deps: jquery
+    scripts: '%vendor_dir%/jqvmap/dist/jquery.vmap.js'
+    styles: '%vendor_dir%/jqvmap/dist/jqvmap.css'
+
+  # TODO: Create sub packages for each map like below.
+  jquery.jqvmap.france:
+    standalone: false
+    deps: jquery.jqvmap
+    scripts: '%vendor_dir%/jqvmap/dist/maps/jquery.vmap.france.js'
+
+  #
+  # jQuery Knob
+  # https://github.com/aterrien/jQuery-Knob
+  #
+  jquery.knob:
+    standalone: false
+    deps: jquery
+    scripts: '%vendor_dir%/jquery-knob/js/jquery.knob.js'
+
+  #
+  # Malihu custom scrollbar plugin
+  # https://github.com/malihu/malihu-custom-scrollbar-plugin
+  #
+  jquery.malihu-custom-scrollbar-plugin:
+      standalone: false
+      deps: jquery
+      scripts: '%vendor_dir%/malihu-custom-scrollbar-plugin/jquery.mCustomScrollbar.js'
+      styles:
+        input:
+          files: '%vendor_dir%/malihu-custom-scrollbar-plugin/jquery.mCustomScrollbar.css'
+          processors:
+            cssurladjuster:
+              prepend: '../../vendor/malihucustomscrollbarplugin/images/'
+      misc:
+        input: '%vendor_dir%/malihu-custom-scrollbar-plugin/**/*.png'
+        output: '%root_dir%/web/vendor/malihucustomscrollbarplugin/images'
+
+  #
+  # jQuery Mouse Wheel
+  # https://github.com/jquery/jquery-mousewheel
+  #
+  jquery.mousewheel:
+    standalone: false
+    deps: jquery
+    scripts: '%vendor_dir%/jquery-mousewheel/jquery.mousewheel.js'
+
+  #
+  # jQuery nestedSortable
+  # https://github.com/ilikenwf/nestedSortable
+  #
+  jquery.nested-sortable:
+    standalone: false
+    deps: [jquery, jquery.ui]
+    scripts: '%vendor_dir%/nestedSortable/jquery.ui.nestedSortable.js'
+
+  #
+  # Parsley
+  # https://github.com/guillaumepotier/Parsley.js/
+  #
+  # Form validation framework.
+  #
+  jquery.parsley:
+    standalone: false
+    deps: jquery
+    scripts:
+      input:
+        - '%vendor_dir%/parsleyjs/dist/parsley.js'
+        - '%vendor_dir%/parsleyjs/dist/i18n/en.js'
+        - '%vendor_dir%/parsleyjs/dist/i18n/fr.js'
+        - '%vendor_dir%/parsleyjs/dist/i18n/es.js'
+        - '%vendor_dir%/parsleyjs/dist/i18n/it.js'
+        - '%vendor_dir%/parsleyjs/dist/i18n/de.js'
+
+  #
+  # Select2
+  # https://github.com/select2/select2
+  #
+  jquery.select2:
+    -
+      standalone: false
+      deps: jquery
+      theme: shared
+      scripts: '%vendor_dir%/select2/dist/js/select2.full.js'
+      styles: '%vendor_dir%/select2/dist/css/select2.css'
+    -
+      standalone: false
+      deps: jquery.select2:shared
+      theme: '%_theme%'
+      styles: '%assets_dir%/app/vendor/jquery.select2/sass/entry-points/%_theme%-theme.scss'
+
+  #
+  # jQuery Sparkline
+  # https://github.com/gwatts/jquery.sparkline
+  #
+  jquery.sparkline:
+    standalone: false
+    deps: jquery
+    scripts: '%vendor_dir%/jquery-sparkline/dist/jquery.sparkline.js'
+
+  #
+  # Jquery smart wizard
+  # https://github.com/mstratman/jQuery-Smart-Wizard
+  #
+  jquery.smart-wizard:
+    standalone: false
+    deps: jquery
+    scripts: '%vendor_dir%/jQuery-Smart-Wizard/js/jquery.smartWizard.js'
+    styles:
+      input:
+      files: '%vendor_dir%/jQuery-Smart-Wizard/css/smart_wizard.css'
+      processors:
+        cssurladjuster:
+          replace: ['../images/', '../../vendor/jquerysmartwizard/images/']
+    misc:
+      input: '%vendor_dir%/jQuery-Smart-Wizard/images/**'
+      output: '%root_dir%/web/vendor/jquerysmartwizard/images'
+
+  #
+  # jQuery starrr
+  # https://github.com/dobtco/starrr
+  #
+  jquery.starrr:
+    standalone: false
+    deps: jquery
+    scripts: '%vendor_dir%/starrr/dist/starrr.js'
+    styles: '%vendor_dir%/starrr/dist/starrr.css'
+
+  #
+  # jQuery tags input
+  # https://github.com/xoxco/jQuery-Tags-Input
+  #
+  jquery.tagsinput:
+    -
+      standalone: false
+      deps: jquery
+      theme: shared
+      scripts: '%vendor_dir%/jquery.tagsinput/src/jquery.tagsinput.js'
+    -
+      standalone: false
+      deps: jquery.tagsinput:shared
+      theme: '%_theme%'
+      styles: '%assets_dir%/app/vendor/jquery.tagsinput/sass/entry-points/%_theme%-theme.scss'
+
+  #
+  # jQuery UI
+  #
+  jquery.ui:
+    standalone: false
+    deps: jquery
+    scripts: '%vendor_dir%/jquery-ui/jquery-ui.js'
+
+  # To only include the widget script of jQuery UI and not the whole lib.
+  jquery.ui.widget:
+    standalone: false
+    deps: jquery
+    scripts: '%vendor_dir%/jquery-ui/ui/widget.js'
+

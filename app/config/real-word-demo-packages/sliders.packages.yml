@@ -1,0 +1,58 @@
+#
+# ./app/config/packages/sliders.packages.yml
+#
+parameters:
+  root_dir: '../../..'
+  assets_dir: '%root_dir%/app/Resources/assets'
+  vendor_dir: '%assets_dir%/vendor'
+
+packages:
+  #
+  # Owl Carousel 2
+  # https://github.com/OwlCarousel2/OwlCarousel2
+  #
+  owl-carousel:
+    -
+      standalone: false
+      theme: shared
+      scripts: '%vendor_dir%/owl.carousel/dist/owl.carousel.js'
+      styles:
+        input:
+          files: '%vendor_dir%/owl.carousel/src/scss/owl.carousel.scss'
+          processors:
+            cssurladjuster:
+              prepend: '../../vendor/owlcarousel/images/'
+      misc:
+        input: '%vendor_dir%/owl.carousel/dist/assets/*.{jpg,jpeg,png,gif}'
+        output: '%root_dir%/web/vendor/owlcarousel/images'
+    -
+      standalone: false
+      theme: '%_theme%'
+      deps: owl-carousel:shared
+      styles: '%assets_dir%/app/vendor/owl-carousel/sass/entry-points/%_theme%-theme.scss'
+
+  #
+  # Revolution slider
+  #
+  revolution-slider:
+    standalone: false
+    scripts:
+      input:
+        - '%vendor_dir%/revolution-slider/js/jquery.themepunch.tools.min.js'
+        - '%vendor_dir%/revolution-slider/js/jquery.themepunch.revolution.min.js'
+    styles:
+      input:
+        files:
+          - '%vendor_dir%/revolution-slider/css/settings.css'
+          - '%vendor_dir%/revolution-slider/css/layers.css'
+          - '%vendor_dir%/revolution-slider/css/navigation.css'
+        processors:
+          cssurladjuster:
+            replace: [../, ../../vendor/rs/]
+    misc:
+      -
+        input: '%vendor_dir%/revolution-slider/assets/**'
+        output: '%root_dir%/web/vendor/rs/assets'
+      -
+        input: '%vendor_dir%/revolution-slider/fonts/revicons/*'
+        output: '%root_dir%/web/vendor/rs/fonts/revicons'

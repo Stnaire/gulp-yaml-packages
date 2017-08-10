@@ -1,0 +1,29 @@
+{
+    "compilerOptions": {
+        "module": "commonjs",
+        "target": "es5",
+        "noImplicitAny": true,
+        "removeComments": true,
+        "preserveConstEnums": true,
+        "outFile": "../index.js",
+        "sourceMap": true
+    },
+    "files": [
+        "typings/node.d.ts",
+        "typings/gulp-packages.d.ts",
+        "helpers/Utils.ts",
+        "helpers/FileSystem.ts",
+        "helpers/Log.ts",
+        "Exceptions.ts",
+        "ProcessorsManager.ts",
+        "PackageFile.ts",
+        "GulpTask.ts",
+        "ScriptsTask.ts",
+        "StylesTask.ts",
+        "MiscTask.ts",
+        "GulpFile.ts"
+    ],
+    "exclude": [
+        "node_modules"
+    ]
+}

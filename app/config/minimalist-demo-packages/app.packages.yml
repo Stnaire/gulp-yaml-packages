@@ -1,10 +1,10 @@
 #
-# ./app/config/gulp_packages.yml
+# ./app/config/minimalist-demo-packages/app.packages.yml
 #
-imports: 'vendor_packages.yml'
+imports: 'vendors.packages.yml'
 
 parameters:
-  root_dir: '../../'
+  root_dir: '../../..'
   assets_dir: '%root_dir%/app/Resources/assets'
 
 #

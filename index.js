@@ -5,6 +5,172 @@ var __extends = (this && this.__extends) || function (d, b) {
 };
 var GP;
 (function (GP) {
+    var FileSystem = GP.Helpers.FileSystem;
+    var Utils = GP.Helpers.Utils;
+    var Log = GP.Helpers.Log;
+    var plumber = require('gulp-plumber');
+    var ProcessorsManager = (function () {
+        function ProcessorsManager() {
+            this.configurations = {};
+            this.callbacks = this.getBaseCallbacks();
+            this.baseConfigurations = this.getBaseConfigurations();
+            this.baseExecutionOrder = this.getBaseExecutionOrder();
+        }
+        ProcessorsManager.prototype.register = function (name, callback) {
+            this.callbacks[name] = callback;
+        };
+        ProcessorsManager.prototype.registerDefaultConfigurations = function (packageFileId, configurations) {
+            this.configurations[packageFileId] = configurations;
+        };
+        ProcessorsManager.prototype.resolve = function (path, packageId, specificConf) {
+            if (packageId === void 0) { packageId = -1; }
+            if (specificConf === void 0) { specificConf = {}; }
+            var ext = FileSystem.getExtension(path);
+            var output = {
+                executionOrder: this.baseExecutionOrder.slice(),
+                processors: {}
+            };
+            for (var pname in this.baseConfigurations) {
+                if (this.baseConfigurations.hasOwnProperty(pname)) {
+                    if (this.baseConfigurations[pname].extensions.indexOf(ext) >= 0) {
+                        var cname = this.baseConfigurations[pname].callback;
+                        output.processors[cname] = Utils.clone(this.baseConfigurations[pname].options);
+                    }
+                }
+            }
+            if (packageId > 0 && Utils.isArray(this.configurations[packageId])) {
+                var subOrder = [];
+                for (var i = 0; i < this.configurations[packageId].length; ++i) {
+                    var conf = this.configurations[packageId][i];
+                    var pos = output.executionOrder.indexOf(conf.callback);
+                    if (pos < 0) {
+                        subOrder.push(conf.callback);
+                    }
+                    else if (subOrder.length) {
+                        Array.prototype.splice.apply(output.executionOrder, [pos, 0].concat(subOrder));
+                        subOrder = [];
+                    }
+                    if (conf.extensions.indexOf(ext) >= 0) {
+                        output.processors[conf.callback] = Utils.clone(conf.options);
+                    }
+                }
+                if (subOrder.length) {
+                    Array.prototype.push.apply(output.executionOrder, subOrder);
+                }
+            }
+            for (var pname in specificConf) {
+                var resolved = this.getConfigurationByName(pname, packageId);
+                if (resolved !== null) {
+                    output.processors[resolved.callback] = Utils.clone(resolved.options);
+                }
+                else {
+                    output.processors[pname] = Utils.clone(specificConf[pname]);
+                }
+            }
+            return output;
+        };
+        ProcessorsManager.prototype.equals = function (a, b) {
+            var isEmpty = function (i) {
+                return i === null || !Object.keys(i.processors).length;
+            };
+            if (isEmpty(a) && isEmpty(b)) {
+                return true;
+            }
+            if (isEmpty(a) || isEmpty(b)) {
+                return false;
+            }
+            return Utils.equals(a.processors, b.processors);
+        };
+        ProcessorsManager.prototype.execute = function (name, options, stream) {
+            if (Utils.isSet(this.callbacks[name])) {
+                return this.callbacks[name].apply(null, [stream, options]);
+            }
+            else {
+                Log.fatal('Processor', "'" + Log.Colors.red(name) + "'", 'does not exist.');
+            }
+        };
+        ProcessorsManager.prototype.getConfigurationByName = function (name, packageId) {
+            if (packageId === void 0) { packageId = -1; }
+            if (packageId > 0 && Utils.isArray(this.configurations[packageId])) {
+                for (var i = 0; i < this.configurations[packageId].length; ++i) {
+                    if (this.configurations[packageId][i].name === name) {
+                        return this.configurations[packageId][i];
+                    }
+                }
+            }
+            if (Utils.isSet(this.baseConfigurations[name])) {
+                return this.baseConfigurations[name];
+            }
+            return null;
+        };
+        ProcessorsManager.prototype.getBaseCallbacks = function () {
+            return {
+                typescript: function (stream, options) {
+                    return stream.pipe(ProcessorsManager.require('gulp-typescript')(options)).js;
+                },
+                coffee: function (stream, options) {
+                    return stream.pipe(ProcessorsManager.require('gulp-coffee')(options));
+                },
+                sass: function (stream, options) {
+                    return stream.pipe(ProcessorsManager.require('gulp-sass')(options));
+                },
+                less: function (stream, options) {
+                    return stream.pipe(ProcessorsManager.require('gulp-less')(options));
+                },
+                cssurladjuster: function (stream, options) {
+                    return stream.pipe(ProcessorsManager.require('gulp-css-url-adjuster')(options));
+                },
+                image: function (stream, options) {
+                    return stream.pipe(ProcessorsManager.require('gulp-image-optimization')(options));
+                }
+            };
+        };
+        ProcessorsManager.prototype.getBaseConfigurations = function () {
+            return {
+                typescript: {
+                    name: 'typescript',
+                    callback: 'typescript',
+                    extensions: ['ts'],
+                    options: {
+                        noImplicitAny: true
+                    }
+                },
+                coffee: {
+                    name: 'coffee',
+                    callback: 'coffee',
+                    extensions: ['coffee'],
+                    options: {}
+                },
+                sass: {
+                    name: 'sass',
+                    callback: 'sass',
+                    extensions: ['sass', 'scss'],
+                    options: {}
+                },
+                less: {
+                    name: 'less',
+                    callback: 'less',
+                    extensions: ['less'],
+                    options: {}
+                }
+            };
+        };
+        ProcessorsManager.prototype.getBaseExecutionOrder = function () {
+            return ['typescript', 'coffee', 'sass', 'less', 'cssurladjuster', 'image'];
+        };
+        ProcessorsManager.require = function (name) {
+            if (!Utils.isSet(ProcessorsManager.modules[name])) {
+                ProcessorsManager.modules[name] = require(name);
+            }
+            return ProcessorsManager.modules[name];
+        };
+        ProcessorsManager.modules = {};
+        return ProcessorsManager;
+    }());
+    GP.ProcessorsManager = ProcessorsManager;
+})(GP || (GP = {}));
+var GP;
+(function (GP) {
     var Helpers;
     (function (Helpers) {
         var extend = require('extend');
@@ -276,181 +442,6 @@ var GP;
         return StopException;
     }(Error));
     GP.StopException = StopException;
-})(GP || (GP = {}));
-var GP;
-(function (GP) {
-    var FileSystem = GP.Helpers.FileSystem;
-    var Utils = GP.Helpers.Utils;
-    var Log = GP.Helpers.Log;
-    var plumber = require('gulp-plumber');
-    var ProcessorsManager = (function () {
-        function ProcessorsManager() {
-            this.configurations = {};
-            this.callbacks = this.getBaseCallbacks();
-            this.baseConfigurations = this.getBaseConfigurations();
-            this.baseExecutionOrder = this.getBaseExecutionOrder();
-        }
-        ProcessorsManager.prototype.register = function (name, callback) {
-            this.callbacks[name] = callback;
-        };
-        ProcessorsManager.prototype.registerDefaultConfigurations = function (packageFileId, configurations) {
-            this.configurations[packageFileId] = configurations;
-        };
-        ProcessorsManager.prototype.resolve = function (path, packageId, specificConf) {
-            if (packageId === void 0) { packageId = -1; }
-            if (specificConf === void 0) { specificConf = {}; }
-            var ext = FileSystem.getExtension(path);
-            var output = {
-                executionOrder: this.baseExecutionOrder.slice(),
-                processors: {}
-            };
-            for (var pname in this.baseConfigurations) {
-                if (this.baseConfigurations.hasOwnProperty(pname)) {
-                    if (this.baseConfigurations[pname].extensions.indexOf(ext) >= 0) {
-                        var cname = this.baseConfigurations[pname].callback;
-                        output.processors[cname] = Utils.clone(this.baseConfigurations[pname].options);
-                    }
-                }
-            }
-            if (packageId > 0 && Utils.isArray(this.configurations[packageId])) {
-                var subOrder = [];
-                for (var i = 0; i < this.configurations[packageId].length; ++i) {
-                    var conf = this.configurations[packageId][i];
-                    var pos = output.executionOrder.indexOf(conf.callback);
-                    if (pos < 0) {
-                        subOrder.push(conf.callback);
-                    }
-                    else if (subOrder.length) {
-                        Array.prototype.splice.apply(output.executionOrder, [pos, 0].concat(subOrder));
-                        subOrder = [];
-                    }
-                    if (conf.extensions.indexOf(ext) >= 0) {
-                        output.processors[conf.callback] = Utils.clone(conf.options);
-                    }
-                }
-                if (subOrder.length) {
-                    Array.prototype.push.apply(output.executionOrder, subOrder);
-                }
-            }
-            for (var pname in specificConf) {
-                var resolved = this.getConfigurationByName(pname, packageId);
-                if (resolved !== null) {
-                    output.processors[resolved.callback] = Utils.clone(resolved.options);
-                }
-                else {
-                    output.processors[pname] = Utils.clone(specificConf[pname]);
-                }
-            }
-            return output;
-        };
-        ProcessorsManager.prototype.equals = function (a, b) {
-            var isEmpty = function (i) {
-                return i === null || !Object.keys(i.processors).length;
-            };
-            if (isEmpty(a) && isEmpty(b)) {
-                return true;
-            }
-            if (isEmpty(a) || isEmpty(b)) {
-                return false;
-            }
-            return Utils.equals(a.processors, b.processors);
-        };
-        ProcessorsManager.prototype.execute = function (name, options, stream) {
-            if (Utils.isSet(this.callbacks[name])) {
-                return this.callbacks[name].apply(null, [stream, options]);
-            }
-            else {
-                Log.fatal('Processor', "'" + Log.Colors.red(name) + "'", 'does not exist.');
-            }
-        };
-        ProcessorsManager.prototype.getConfigurationByName = function (name, packageId) {
-            if (packageId === void 0) { packageId = -1; }
-            if (packageId > 0 && Utils.isArray(this.configurations[packageId])) {
-                for (var i = 0; i < this.configurations[packageId].length; ++i) {
-                    if (this.configurations[packageId][i].name === name) {
-                        return this.configurations[packageId][i];
-                    }
-                }
-            }
-            if (Utils.isSet(this.baseConfigurations[name])) {
-                return this.baseConfigurations[name];
-            }
-            return null;
-        };
-        ProcessorsManager.prototype.getBaseCallbacks = function () {
-            return {
-                typescript: function (stream, options) {
-                    return stream.pipe(ProcessorsManager.require('gulp-typescript')(options)).js;
-                },
-                coffee: function (stream, options) {
-                    return stream.pipe(ProcessorsManager.require('gulp-coffee')(options));
-                },
-                sass: function (stream, options) {
-                    return stream.pipe(ProcessorsManager.require('gulp-sass')(options));
-                },
-                less: function (stream, options) {
-                    return stream.pipe(ProcessorsManager.require('gulp-less')(options));
-                },
-                cssurlajuster: function (stream, options) {
-                    options = Utils.ensureArray(options);
-                    for (var i = 0; i < options.length; ++i) {
-                        stream = stream.pipe(ProcessorsManager.require('gulp-css-url-adjuster')({
-                            replace: [
-                                options[i].from,
-                                options[i].to
-                            ]
-                        }));
-                    }
-                    return stream;
-                },
-                image: function (stream, options) {
-                    return stream.pipe(ProcessorsManager.require('gulp-image-optimization')(options));
-                }
-            };
-        };
-        ProcessorsManager.prototype.getBaseConfigurations = function () {
-            return {
-                typescript: {
-                    name: 'typescript',
-                    callback: 'typescript',
-                    extensions: ['ts'],
-                    options: {
-                        noImplicitAny: true
-                    }
-                },
-                coffee: {
-                    name: 'coffee',
-                    callback: 'coffee',
-                    extensions: ['coffee'],
-                    options: {}
-                },
-                sass: {
-                    name: 'sass',
-                    callback: 'sass',
-                    extensions: ['sass', 'scss'],
-                    options: {}
-                },
-                less: {
-                    name: 'less',
-                    callback: 'less',
-                    extensions: ['less'],
-                    options: {}
-                }
-            };
-        };
-        ProcessorsManager.prototype.getBaseExecutionOrder = function () {
-            return ['typescript', 'coffee', 'sass', 'less', 'cssurlajuster', 'image'];
-        };
-        ProcessorsManager.require = function (name) {
-            if (!Utils.isSet(ProcessorsManager.modules[name])) {
-                ProcessorsManager.modules[name] = require(name);
-            }
-            return ProcessorsManager.modules[name];
-        };
-        ProcessorsManager.modules = {};
-        return ProcessorsManager;
-    }());
-    GP.ProcessorsManager = ProcessorsManager;
 })(GP || (GP = {}));
 var GP;
 (function (GP) {
@@ -948,8 +939,15 @@ var GP;
                 else {
                     match = raw[i].match(/^(\D[\w.-]*)(?::([\w.-]+))?(?:#([\w.-]+))?$/i);
                     if (match !== null) {
+                        var depPackageFileId = this.id;
+                        for (var i_1 = 0; i_1 < loadedConfigurations.length; ++i_1) {
+                            if (!Utils.isUndefined(loadedConfigurations[i_1].packages[match[1]])) {
+                                depPackageFileId = loadedConfigurations[i_1].id;
+                                break;
+                            }
+                        }
                         output.push({
-                            packageFileId: this.id,
+                            packageFileId: depPackageFileId,
                             packageName: match[1],
                             packageTheme: this.normalizePackageTheme(match[2]),
                             packageVersion: this.normalizePackageVersion(match[3])
@@ -1081,7 +1079,7 @@ var GP;
                 }
                 if (isGlob) {
                     var pos = absolute.indexOf(FileSystem.separator + '**');
-                    if (pos >= 0 && (pos === absolute.length - 3 || absolute[pos + 1] === FileSystem.separator)) {
+                    if (pos >= 0) {
                         globBase = absolute.substring(0, pos);
                     }
                 }
@@ -1113,11 +1111,11 @@ var GP;
             return 0;
         };
         PackageFile.prototype.mergeDependenciesDeclarations = function (config) {
-            for (var name in config.packages) {
-                this.contextIn(['packages', name]);
-                if (config.packages.hasOwnProperty(name)) {
-                    for (var i = 0; i < config.packages[name].length; ++i) {
-                        this.mergePackageDependenciesDeclarations(config.packages[name][i]);
+            for (var name_2 in config.packages) {
+                this.contextIn(['packages', name_2]);
+                if (config.packages.hasOwnProperty(name_2)) {
+                    for (var i = 0; i < config.packages[name_2].length; ++i) {
+                        this.mergePackageDependenciesDeclarations(config.packages[name_2][i]);
                     }
                 }
                 this.contextOut(2);
@@ -1143,6 +1141,7 @@ var GP;
                         this.mergePackageDependenciesDeclarations(closest, stack);
                         Array.prototype.splice.apply(config.deps, [j, 0].concat(closest.deps));
                         j += closest.deps.length;
+                        stack.pop();
                         if (this.options.debug) {
                             Log.info('Resolved in package', "'" + Log.Colors.magenta(closest.name.name) + "'", 'version', "'" + Log.Colors.yellow(closest.version.text || 'any') + "'", 'theme', "'" + Log.Colors.yellow(closest.theme || 'none') + "'");
                         }
@@ -1153,12 +1152,12 @@ var GP;
                             "'" + Log.Colors.red(this.path) + "'.",
                             "Details of the stack :\n"
                         ];
-                        for (var j = 0; j < stack.length; ++j) {
-                            if (stack[j] === str) {
-                                Array.prototype.push.apply(messages, [Log.Colors.bgRed.black(' ! '), Log.Colors.red(stack[j]) + "\n"]);
+                        for (var j_1 = 0; j_1 < stack.length; ++j_1) {
+                            if (stack[j_1] === str) {
+                                Array.prototype.push.apply(messages, [Log.Colors.bgRed.black(' ! '), Log.Colors.red(stack[j_1]) + "\n"]);
                             }
                             else {
-                                Array.prototype.push.apply(messages, ['OK', Log.Colors.magenta(stack[j]) + "\n"]);
+                                Array.prototype.push.apply(messages, ['OK', Log.Colors.magenta(stack[j_1]) + "\n"]);
                             }
                         }
                         messages.push(Log.Colors.bgRed.black(' ! ') + ' ' + Log.Colors.red(str) + "\n");
@@ -1166,7 +1165,7 @@ var GP;
                     }
                 }
                 else {
-                    Log.error('Dependency', "'" + Log.Colors.red(dep.packageName) + "'", '(version', "'" + Log.Colors.yellow(dep.packageVersion.text || 'any') + "'", 'theme', "'" + Log.Colors.yellow(dep.packageTheme || 'none') + "')", 'not found for package', "'" + Log.Colors.red(config.name.name) + "'", this.getContextString());
+                    Log.error('Dependency ', "'" + Log.Colors.red(dep.packageName) + "'", '(version', "'" + Log.Colors.yellow(dep.packageVersion.text || 'any') + "'", 'theme', "'" + Log.Colors.yellow(dep.packageTheme || 'none') + "')", 'not found for package', "'" + Log.Colors.red(config.name.name) + "'", this.getContextString());
                 }
                 this.contextOut();
             }
@@ -1280,11 +1279,12 @@ var GP;
                                 conf.packages[iname] = [];
                             }
                             for (var j = 0; j < importConf.packages[iname].length; ++j) {
+                                var existing = null;
                                 var incoherentClone = false;
                                 var imported = importConf.packages[iname][j];
                                 var importedPackageFileId = !imported.name.shared ? imported.packageFileId : this.id;
                                 for (var k = 0; k < conf.packages[iname].length; ++k) {
-                                    var existing = conf.packages[iname][k];
+                                    existing = conf.packages[iname][k];
                                     if (imported.theme === existing.theme && existing.packageFileId === importedPackageFileId &&
                                         this.compareVersions(imported.version, existing.version) === 0) {
                                         incoherentClone = !this.areSamePackages(existing, imported);
@@ -1380,8 +1380,8 @@ var GP;
             var queue = [];
             var that = this;
             var addedFiles = [];
-            for (var i = 0; i < inputs.length; ++i) {
-                if (this.gulpfile.options.verbose) {
+            var _loop_1 = function(i) {
+                if (this_1.gulpfile.options.verbose) {
                     Log.info(Log.Colors.green('New stream'));
                 }
                 for (var j = 0; j < inputs[i].files.length; ++j) {
@@ -1390,13 +1390,13 @@ var GP;
                     }
                     else {
                         addedFiles.push(inputs[i].files[j]);
-                        if (this.gulpfile.options.verbose) {
+                        if (this_1.gulpfile.options.verbose) {
                             Log.info('File', "'" + Log.Colors.yellow(inputs[i].files[j]) + "'");
                         }
                     }
                 }
                 var processors = [];
-                var stream = this.gulpfile.gulp.src(inputs[i].files).pipe(plumber(function (error) {
+                var stream = this_1.gulpfile.gulp.src(inputs[i].files).pipe(plumber(function (error) {
                     var messages = [];
                     if (Utils.isObject(error)) {
                         for (var key in error) {
@@ -1425,19 +1425,23 @@ var GP;
                         return inputs[i].processors.executionOrder.indexOf(a.name) - inputs[i].processors.executionOrder.indexOf(b.name);
                     });
                     for (var j = 0; j < processors.length; ++j) {
-                        if (this.gulpfile.options.verbose) {
+                        if (this_1.gulpfile.options.verbose) {
                             Log.info('Processor', "'" + Log.Colors.yellow(processors[j].callback) + "'", 'options', "'" + Log.Colors.magenta(JSON.stringify(processors[j].options)) + "'");
                         }
-                        stream = this.processorsManager.execute(processors[j].callback, processors[j].options, stream);
+                        stream = this_1.processorsManager.execute(processors[j].callback, processors[j].options, stream);
                         if (!Utils.isObject(stream)) {
                             Log.fatal('Invalid return value', "'" + Log.Colors.red(Utils.asString(stream)) + "'.", 'A processor must return a stream.');
                         }
                     }
                 }
-                else if (this.gulpfile.options.verbose) {
+                else if (this_1.gulpfile.options.verbose) {
                     Log.info(Log.Colors.yellow('No processor'));
                 }
                 queue.push(stream);
+            };
+            var this_1 = this;
+            for (var i = 0; i < inputs.length; ++i) {
+                _loop_1(i);
             }
             if (queue.length) {
                 return series.apply(this, queue);
@@ -1716,8 +1720,8 @@ var GP;
             }
             for (var type in files) {
                 if (files.hasOwnProperty(type) && files[type].length > 0) {
-                    var name_2 = '_gyp_watch_' + type;
-                    this._gulp.task(name_2, (function (that, rt, files) {
+                    var name_3 = '_gyp_watch_' + type;
+                    this._gulp.task(name_3, (function (that, rt, files) {
                         return function () {
                             watch(files, function (file) {
                                 Log.info('Change on', "'" + Log.Colors.magenta(file.path) + "'");
@@ -1725,7 +1729,7 @@ var GP;
                             });
                         };
                     })(this, type, files[type]));
-                    tasksNames.push(name_2);
+                    tasksNames.push(name_3);
                 }
             }
             return tasksNames;

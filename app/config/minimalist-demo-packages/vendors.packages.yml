@@ -1,9 +1,8 @@
 #
-# ./app/config/vendor_packages.yml
+# ./app/config/minimalist-demo-packages/vendor_packages.yml
 #
-
 parameters:
-  root_dir: '../..'
+  root_dir: '../../..'
   assets_dir: '%root_dir%/app/Resources/assets'
   vendor_dir: '%root_dir%/app/Resources/vendor'
 
@@ -32,7 +31,7 @@ packages:
         input:
           files: '%vendor_dir%/bootstrap/less/bootstrap.less'
           processors:
-            cssurlajuster:
+            cssurladjuster:
               -
                 from: ../fonts/
                 to: ../fonts/bootstrap/

@@ -4,7 +4,7 @@ namespace GP {
     import Utils = GP.Helpers.Utils;
     import Log = GP.Helpers.Log;
 
-    var plumber = require('gulp-plumber');
+    let plumber = require('gulp-plumber');
 
     export class ProcessorsManager {
         /**
@@ -44,8 +44,8 @@ namespace GP {
          * Register a processor.
          * Default processors can be overridden if you feel the need.
          *
-         * @param string   name
-         * @param function callback
+         * @param {string}   name
+         * @param {function} callback
          */
         public register(name: string, callback: (stream: any, options: any) => any): void {
             this.callbacks[name] = callback;
@@ -54,8 +54,8 @@ namespace GP {
         /**
          * Register a list of processors' default configurations for a package file.
          *
-         * @param number                              packageFileId
-         * @param PackageFileProcessorConfiguration[] configurations
+         * @param {number}                              packageFileId
+         * @param {PackageFileProcessorConfiguration[]} configurations
          */
         public registerDefaultConfigurations(packageFileId: number, configurations: PackageFileProcessorConfiguration[]): void {
             this.configurations[packageFileId] = configurations;
@@ -65,18 +65,19 @@ namespace GP {
          * Get processors matching a given file path.
          * The matching is based on the extension of the file.
          *
-         * @param string path
-         * @param number packageId    (optional)
-         * @param object specificConf (optional)
-         * @returns object
+         * @param {string} path
+         * @param {number} packageId    (optional)
+         * @param {object} specificConf (optional)
+         *
+         * @returns {object}
          */
         public resolve(path: string, packageId: number = -1, specificConf: {[key: string]: Object} = {}): GulpfileProcessorsConfiguration {
-            var ext = FileSystem.getExtension(path);
-            var output: GulpfileProcessorsConfiguration = {
+            let ext = FileSystem.getExtension(path);
+            let output: GulpfileProcessorsConfiguration = {
                 executionOrder: this.baseExecutionOrder.slice(),
                 processors: {}
             };
-            for (var pname in this.baseConfigurations) {
+            for (let pname in this.baseConfigurations) {
                 if (this.baseConfigurations.hasOwnProperty(pname)) {
                     if (this.baseConfigurations[pname].extensions.indexOf(ext) >= 0) {
                         let cname = this.baseConfigurations[pname].callback;
@@ -85,10 +86,10 @@ namespace GP {
                 }
             }
             if (packageId > 0 && Utils.isArray(this.configurations[packageId])) {
-                var subOrder: string[] = [];
-                for (var i = 0; i < this.configurations[packageId].length; ++i) {
-                    var conf = this.configurations[packageId][i];
-                    var pos = output.executionOrder.indexOf(conf.callback);
+                let subOrder: string[] = [];
+                for (let i = 0; i < this.configurations[packageId].length; ++i) {
+                    let conf = this.configurations[packageId][i];
+                    let pos = output.executionOrder.indexOf(conf.callback);
                     if (pos < 0) {
                         subOrder.push(conf.callback);
                     } else if (subOrder.length) {
@@ -103,7 +104,7 @@ namespace GP {
                     Array.prototype.push.apply(output.executionOrder, subOrder);
                 }
             }
-            for (var pname in specificConf) {
+            for (let pname in specificConf) {
                 let resolved = this.getConfigurationByName(pname, packageId);
                 if (resolved !== null) {
                     output.processors[resolved.callback] = Utils.clone(resolved.options);
@@ -117,12 +118,13 @@ namespace GP {
         /**
          * Test if two processors configurations can be considered equal or not.
          *
-         * @param GulpfileProcessorsConfiguration a
-         * @param GulpfileProcessorsConfiguration b
-         * @returns boolean
+         * @param {GulpfileProcessorsConfiguration} a
+         * @param {GulpfileProcessorsConfiguration} b
+         *
+         * @returns {boolean}
          */
         public equals(a: GulpfileProcessorsConfiguration, b: GulpfileProcessorsConfiguration): boolean {
-            var isEmpty = (i: GulpfileProcessorsConfiguration): boolean => {
+            let isEmpty = (i: GulpfileProcessorsConfiguration): boolean => {
                 return i === null || !Object.keys(i.processors).length;
             };
             if (isEmpty(a) && isEmpty(b)) { return true }
@@ -133,9 +135,10 @@ namespace GP {
         /**
          * Execute a processor by callback name.
          *
-         * @param string name
-         * @param object options
-         * @param object stream
+         * @param {string} name
+         * @param {object} options
+         * @param {object} stream
+         *
          * @returns any
          */
         public execute(name: string, options: Object, stream: any): any {
@@ -149,13 +152,14 @@ namespace GP {
         /**
          * Try to find a processor's configuration by name.
          *
-         * @param string name
-         * @param number packageId (optional) package id to search in
-         * @returns PackageFileProcessorConfiguration
+         * @param {string} name
+         * @param {number} packageId (optional) package id to search in
+         *
+         * @returns {PackageFileProcessorConfiguration}
          */
         protected getConfigurationByName(name: string, packageId: number = -1): PackageFileProcessorConfiguration {
             if (packageId > 0 && Utils.isArray(this.configurations[packageId])) {
-                for (var i = 0; i < this.configurations[packageId].length; ++i) {
+                for (let i = 0; i < this.configurations[packageId].length; ++i) {
                     if (this.configurations[packageId][i].name === name) {
                         return this.configurations[packageId][i];
                     }
@@ -170,7 +174,7 @@ namespace GP {
         /**
          * Defines the list of default processors configuration.
          *
-         * @returns object
+         * @returns {object}
          */
         protected getBaseCallbacks(): {[key: string]: (stream: any, options: any) => any} {
             return {
@@ -197,17 +201,8 @@ namespace GP {
                 },
 
                 // Replace part of paths in css files.
-                cssurlajuster: function(stream, options) {
-                    options =  Utils.ensureArray(options);
-                    for (var i = 0; i < options.length; ++i) {
-                        stream = stream.pipe(ProcessorsManager.require('gulp-css-url-adjuster')({
-                            replace: [
-                                options[i].from,
-                                options[i].to
-                            ]
-                        }));
-                    }
-                    return stream;
+                cssurladjuster: function(stream, options) {
+                    return stream.pipe(ProcessorsManager.require('gulp-css-url-adjuster')(options));
                 },
 
                 //
@@ -222,7 +217,7 @@ namespace GP {
         /**
          * Defines the list of default processors configuration.
          *
-         * @returns object
+         * @returns {object}
          */
         protected getBaseConfigurations(): {[key: string]: PackageFileProcessorConfiguration} {
             return {
@@ -265,18 +260,19 @@ namespace GP {
         /**
          * Gets base processors' names ordered by execution priority.
          *
-         * @returns string[]
+         * @returns {string[]}
          */
         protected getBaseExecutionOrder(): string[] {
-            return ['typescript', 'coffee', 'sass', 'less', 'cssurlajuster', 'image'];
+            return ['typescript', 'coffee', 'sass', 'less', 'cssurladjuster', 'image'];
         }
 
         /**
          * Require a module only on demand.
          * Used for built-in processors to avoid dependency errors.
          *
-         * @param string name
-         * @returns function
+         * @param {string} name
+         *
+         * @returns {function}
          */
         static require(name: string): (options: any) => any {
             if (!Utils.isSet(ProcessorsManager.modules[name])) {

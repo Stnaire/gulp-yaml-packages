@@ -384,7 +384,7 @@ Here the list of built-in processors:
 - **`coffee`** - Compiles coffee script files. Uses the `gulp-coffee` module (<a href="https://github.com/contra/gulp-coffee" target="_blank">GitHub</a>).
 - **`sass`** - Compiles sass files. Uses the `gulp-sass` module (<a href="https://github.com/dlmanning/gulp-sass" target="_blank">GitHub</a>).
 - **`less`** - Compiles less files. Uses the `gulp-less` module (<a href="https://github.com/plus3network/gulp-less" target="_blank">GitHub</a>).
-- **`cssurlajuster`** - Rewrite urls in css files. Uses the `gulp-css-url-adjuster` module (<a href="https://github.com/trentearl/gulp-css-url-adjuster" target="_blank">GitHub</a>).
+- **`cssurladjuster`** - Rewrite urls in css files. Uses the `gulp-css-url-adjuster` module (<a href="https://github.com/trentearl/gulp-css-url-adjuster" target="_blank">GitHub</a>).
 - **`image`** - Optimize images. Uses the `gulp-image-optimization` module (<a href="https://github.com/firetix/gulp-image-optimization" target="_blank">GitHub</a>).
 
 You can assign a processor to a package using the key `processors`: 
@@ -507,7 +507,7 @@ To ensure processors are executed in a certain order, their configuration is def
 They are then executed in the order they were defined in the array.
 
 Built-in processors are executed in the following order:
-`typescript, coffee, sass, less, cssurlajuster, image`.
+`typescript, coffee, sass, less, cssurladjuster, image`.
 
 If you need to execute a custom processor before the `sass` processor for example, you can do:
 
@@ -524,10 +524,10 @@ packages:
 
 The `sass` processor here is only a string. This means you don't define a new configuration, but simply indicate the order of execution.
 The new order of execution will be:
-`typescript, coffee, myCustomProcessor, sass, less, cssurlajuster, image`.
+`typescript, coffee, myCustomProcessor, sass, less, cssurladjuster, image`.
 
 Not defining the `sass` element will result in the following order:
-`typescript, coffee, sass, less, cssurlajuster, image, myCustomProcessor`.
+`typescript, coffee, sass, less, cssurladjuster, image, myCustomProcessor`.
 
 ## Imports
 

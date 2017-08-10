@@ -3,11 +3,11 @@ namespace GP {
     import Utils = GP.Helpers.Utils;
     import FileSystem = GP.Helpers.FileSystem;
 
-    var gulpif = require('gulp-if');
-    var uglifycss = require('gulp-uglifycss');
-    var sourcemaps = require('gulp-sourcemaps');
-    var relativeSourcesmaps = require('gulp-relative-sourcemaps-source');
-    var concat = require('gulp-concat');
+    let gulpif = require('gulp-if');
+    let uglifycss = require('gulp-uglifycss');
+    let sourcemaps = require('gulp-sourcemaps');
+    let relativeSourcesmaps = require('gulp-relative-sourcemaps-source');
+    let concat = require('gulp-concat');
 
     export class StylesTask extends GulpTask { 
         /**
@@ -22,11 +22,12 @@ namespace GP {
         /**
          * See: GulpTask::createStream().
          *
-         * @param GulpfileInputConfiguration[] inputs
-         * @returns object
+         * @param {GulpfileInputConfiguration[]} inputs
+         *
+         * @returns {object}
          */
         protected createStream(inputs: GulpfileInputConfiguration[]): any {
-            var env = this.gulpfile.options.env;
+            let env = this.gulpfile.options.env;
             return super.createStream(inputs)
                 .pipe(gulpif(env === 'dev', sourcemaps.init()))
                 .pipe(gulpif(env === 'prod', uglifycss()))

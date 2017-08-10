@@ -1,0 +1,107 @@
+#
+# ./app/config/packages/bootstrap.packages.yml
+#
+parameters:
+  root_dir: '../../..'
+  assets_dir: '%root_dir%/app/Resources/assets'
+  vendor_dir: '%assets_dir%/vendor'
+
+packages:
+  #
+  # Bootstrap
+  # http://getbootstrap.com/
+  #
+  bootstrap:
+    -
+      deps: jquery
+      theme: shared
+      standalone: false
+      scripts: '%vendor_dir%/bootstrap-sass/assets/javascripts/bootstrap.js'
+      misc:
+        input: '%vendor_dir%/bootstrap-sass/assets/fonts/bootstrap/**'
+        output: '%root_dir%/web/vendor/bootstrap/fonts'
+    -
+      standalone: false
+      deps: bootstrap:shared
+      theme: default
+      styles:
+        input:
+          files: '%vendor_dir%/bootstrap-sass/assets/stylesheets/_bootstrap.scss'
+          processors:
+            cssurladjuster:
+              replace: [../fonts/bootstrap/, ../../../vendor/bootstrap/fonts/]
+    -
+      standalone: false
+      theme: '%_theme%'
+      deps: bootstrap:shared
+      styles:
+        input:
+          files: '%assets_dir%/app/vendor/bootstrap/sass/entry-points/%_theme%-theme.scss'
+          processors:
+            cssurladjuster:
+              replace: [../fonts/bootstrap/, ../../../vendor/bootstrap/fonts/]
+
+  #
+  # Bootstrap Colorpicker 2
+  # https://github.com/itsjavi/bootstrap-colorpicker
+  #
+  bootstrap.mjolnic-bootstrap-colorpicker:
+    standalone: false
+    deps: bootstrap:shared
+    scripts: '%vendor_dir%/mjolnic-bootstrap-colorpicker/dist/js/bootstrap-colorpicker.js'
+    styles:
+      input:
+        files: '%vendor_dir%/mjolnic-bootstrap-colorpicker/dist/css/bootstrap-colorpicker.css'
+        processors:
+          cssurladjuster:
+            replace: [../img/bootstrap-colorpicker/, ../../../vendor/mjolnicbootstrapcolorpicker/images/]
+    misc:
+      input: '%vendor_dir%/mjolnic-bootstrap-colorpicker/dist/img/bootstrap-colorpicker/*'
+      output: '%root_dir%/web/vendor/mjolnicbootstrapcolorpicker/images'
+
+  #
+  # Bootstrap Date Range Picker
+  # http://www.daterangepicker.com/
+  #
+  bootstrap.daterangepicker:
+    -
+      standalone: false
+      theme: shared
+      deps: bootstrap:shared
+      scripts: '%vendor_dir%/bootstrap-daterangepicker/daterangepicker.js'
+    -
+      standalone: false
+      theme: default
+      deps: bootstrap.daterangepicker:shared
+      styles: '%vendor_dir%/bootstrap-daterangepicker/daterangepicker.scss'
+    -
+      standalone: false
+      theme: '%_theme%'
+      deps: [bootstrap:%_theme%, bootstrap.daterangepicker:shared]
+      styles: '%assets_dir%/app/vendor/bootstrap.daterangepicker/sass/entry-points/%_theme%-theme.scss'
+
+  #
+  # Bootstrap progress bar jquery helper
+  # https://github.com/minddust/bootstrap-progressbar
+  #
+  bootstrap.progressbar:
+    -
+      standalone: false
+      deps: bootstrap
+      theme: shared
+      scripts: '%vendor_dir%/bootstrap-progressbar/bootstrap-progressbar.js'
+    -
+      standalone: false
+      deps: bootstrap.progressbar:shared
+      theme: '%_theme%'
+      styles: '%assets_dir%/app/vendor/bootstrap.progressbar/sass/entry-points/%_theme%-theme.scss'
+
+  #
+  # Bootstrap wysiwyg
+  # https://github.com/mindmup/bootstrap-wysiwyg
+  #
+  bootstrap.wysiwyg:
+    standalone: false
+    deps: bootstrap
+    scripts: '%vendor_dir%/bootstrap-wysiwyg/js/bootstrap-wysiwyg.min.js'
+    styles: '%vendor_dir%/bootstrap-wysiwyg/css/style.css'
