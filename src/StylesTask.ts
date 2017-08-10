@@ -1,3 +1,5 @@
+/// <reference path="helpers/FileSystem.ts" />
+/// <reference path="helpers/Utils.ts" />
 
 namespace GP {
     import Utils = GP.Helpers.Utils;

@@ -1,11 +1,11 @@
-/// <reference path="helpers/Utils.ts" />
 /// <reference path="helpers/FileSystem.ts" />
+/// <reference path="helpers/Utils.ts" />
 /// <reference path="helpers/Log.ts" />
 
 namespace GP {
     import FileSystem = GP.Helpers.FileSystem;
-    import Log = GP.Helpers.Log;
     import Utils = GP.Helpers.Utils;
+    import Log = GP.Helpers.Log;
 
     let loadedConfigurationsMaxId = 0;
     let loadedConfigurations: PackageFileConfiguration[] = [];

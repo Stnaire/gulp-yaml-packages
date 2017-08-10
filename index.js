@@ -5,6 +5,269 @@ var __extends = (this && this.__extends) || function (d, b) {
 };
 var GP;
 (function (GP) {
+    var Helpers;
+    (function (Helpers) {
+        var fs = require('fs');
+        var fspath = require('path');
+        var jsYaml = require('js-yaml');
+        var FileSystem = (function () {
+            function FileSystem() {
+            }
+            FileSystem.fileExists = function (path) {
+                try {
+                    return fs.statSync(path).isFile();
+                }
+                catch (e) {
+                    return false;
+                }
+            };
+            FileSystem.isDirectory = function (path) {
+                var stats = fs.lstatSync(path);
+                return stats && stats.isDirectory();
+            };
+            FileSystem.getExtension = function (path) {
+                var ext = fspath.extname(path).toLowerCase();
+                return ext && ext[0] === '.' ? ext.substring(1) : ext;
+            };
+            FileSystem.getAbsolutePath = function (path, from, ensureExists) {
+                if (from === void 0) { from = ''; }
+                if (ensureExists === void 0) { ensureExists = false; }
+                var resolved = fspath.resolve(from, path);
+                return !ensureExists || FileSystem.fileExists(resolved) ? resolved : null;
+            };
+            FileSystem.getFileContent = function (path) {
+                if (FileSystem.fileExists(path)) {
+                    return fs.readFileSync(path, 'utf-8');
+                }
+                Helpers.Log.error('File', Helpers.Log.Colors.red(path), 'does not exist.');
+                return null;
+            };
+            FileSystem.getYamlFileContent = function (path) {
+                try {
+                    var content = FileSystem.getFileContent(path);
+                    if (content !== null) {
+                        return jsYaml.safeLoad(content);
+                    }
+                }
+                catch (e) {
+                    Helpers.Log.error('Failed to read YAML file', Helpers.Log.Colors.magenta(path) + '.', 'Reason:', Helpers.Log.Colors.red(e.toString()));
+                }
+                return null;
+            };
+            FileSystem.getRelativePath = function (from, to) {
+                return fspath.relative(from, to);
+            };
+            FileSystem.getDirectoryName = function (path) {
+                return fspath.dirname(path);
+            };
+            Object.defineProperty(FileSystem, "separator", {
+                get: function () {
+                    return fspath.sep;
+                },
+                enumerable: true,
+                configurable: true
+            });
+            return FileSystem;
+        }());
+        Helpers.FileSystem = FileSystem;
+    })(Helpers = GP.Helpers || (GP.Helpers = {}));
+})(GP || (GP = {}));
+var GP;
+(function (GP) {
+    var Helpers;
+    (function (Helpers) {
+        var extend = require('extend');
+        var isGlob = require('is-glob');
+        var Utils = (function () {
+            function Utils() {
+            }
+            Utils.isObject = function (input) {
+                return input !== null && typeof (input) === 'object';
+            };
+            Utils.isArray = function (input) {
+                return Array.isArray(input);
+            };
+            Utils.isUndefined = function (input) {
+                return typeof (input) === 'undefined';
+            };
+            Utils.isString = function (input, notEmpty) {
+                if (notEmpty === void 0) { notEmpty = false; }
+                return typeof (input) === 'string' && (!notEmpty || !!Utils.trim(input).length);
+            };
+            Utils.isSet = function (input) {
+                return input !== null && !Utils.isUndefined(input);
+            };
+            Utils.isGlob = function (input) {
+                if (Utils.isString(input)) {
+                    return isGlob(input);
+                }
+                return false;
+            };
+            Utils.isValidPath = function (input) {
+                var reg = /[‘“!#$%&+^<=>`]/;
+                return Utils.isString(input) && reg.test(input) && !Utils.isGlob(input);
+            };
+            Utils.isDefined = function (data, candidates, strict) {
+                if (strict === void 0) { strict = true; }
+                if (!Utils.isObject(data)) {
+                    return false;
+                }
+                if (!Utils.isArray(candidates)) {
+                    candidates = [candidates];
+                }
+                for (var i = 0; i < candidates.length; ++i) {
+                    if (!Utils.isUndefined(data[candidates[i]])) {
+                        if (strict !== true) {
+                            return true;
+                        }
+                    }
+                    else if (strict === true) {
+                        return false;
+                    }
+                }
+                return false;
+            };
+            Utils.asString = function (input) {
+                if (input === void 0) {
+                    return '[undefined]';
+                }
+                if (input === null) {
+                    return '[null]';
+                }
+                if (Utils.isArray(input)) {
+                    return '[object Array]';
+                }
+                return (typeof (input['toString']) === 'function') ? input.toString() : typeof (input);
+            };
+            Utils.ensureArray = function (input) {
+                if (Utils.isArray(input)) {
+                    return input;
+                }
+                if (input === null || Utils.isUndefined(input)) {
+                    return [];
+                }
+                return [input];
+            };
+            Utils.trim = function (str) {
+                return str.replace(/^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g, '');
+            };
+            Utils.pad = function (str, nb, c) {
+                if (c === void 0) { c = '0'; }
+                str = str + '';
+                return str.length >= nb ? str : (str + new Array(nb - str.length + 1).join(c));
+            };
+            Utils.deepCopy = function (input) {
+                if (Utils.isObject(input)) {
+                    return Utils.extend(true, {}, input);
+                }
+                return input;
+            };
+            Utils.extend = function () {
+                var objects = [];
+                for (var _i = 0; _i < arguments.length; _i++) {
+                    objects[_i - 0] = arguments[_i];
+                }
+                return extend.apply(null, objects);
+            };
+            Utils.clone = function (input) {
+                if (Utils.isArray(input)) {
+                    return input.slice();
+                }
+                if (Utils.isObject(input)) {
+                    return Utils.deepCopy(input);
+                }
+                return input;
+            };
+            Utils.equals = function (a, b) {
+                return JSON.stringify(Utils.generateHashData(a)) === JSON.stringify(Utils.generateHashData(b));
+            };
+            Utils.generateHashData = function (data) {
+                if (Utils.isArray(data)) {
+                    var output = [];
+                    for (var i = 0; i < data.length; ++i) {
+                        output.push(Utils.generateHashData(data[i]));
+                    }
+                    return output;
+                }
+                else if (Utils.isObject(data)) {
+                    var output = [];
+                    var keys = Object.keys(data);
+                    keys.sort();
+                    for (var i = 0; i < keys.length; ++i) {
+                        var k = keys[i];
+                        var obj = {};
+                        obj[k] = Utils.generateHashData(data[k]);
+                        output.push(obj);
+                    }
+                    return output;
+                }
+                if (Utils.isString(data)) {
+                    return Utils.slugify(data);
+                }
+                return data;
+            };
+            Utils.slugify = function (text) {
+                return text.toString().toLowerCase()
+                    .replace(/\s+/g, '-')
+                    .replace(/[^\w\-]+/g, '')
+                    .replace(/\-\-+/g, '-')
+                    .replace(/^-+/, '')
+                    .replace(/-+$/, '');
+            };
+            return Utils;
+        }());
+        Helpers.Utils = Utils;
+    })(Helpers = GP.Helpers || (GP.Helpers = {}));
+})(GP || (GP = {}));
+var GP;
+(function (GP) {
+    var Helpers;
+    (function (Helpers) {
+        var gutil = require('gulp-util');
+        var Log = (function () {
+            function Log() {
+            }
+            Log.info = function () {
+                var messages = [];
+                for (var _i = 0; _i < arguments.length; _i++) {
+                    messages[_i - 0] = arguments[_i];
+                }
+                gutil.log.apply(null, messages);
+            };
+            Log.warning = function () {
+                var messages = [];
+                for (var _i = 0; _i < arguments.length; _i++) {
+                    messages[_i - 0] = arguments[_i];
+                }
+                messages.unshift(gutil.colors.bgYellow.black('! WARNING !'));
+                gutil.log.apply(null, messages);
+            };
+            Log.error = function () {
+                var messages = [];
+                for (var _i = 0; _i < arguments.length; _i++) {
+                    messages[_i - 0] = arguments[_i];
+                }
+                messages.unshift(gutil.colors.bgRed.black('! ERROR !'));
+                gutil.log.apply(null, messages);
+            };
+            Log.fatal = function () {
+                var messages = [];
+                for (var _i = 0; _i < arguments.length; _i++) {
+                    messages[_i - 0] = arguments[_i];
+                }
+                messages.unshift(gutil.colors.bgYellow.black('! gulp-packages stops !'));
+                messages.unshift(gutil.colors.bgRed.black('!! FATAL ERROR !!'));
+                gutil.log.apply(null, messages);
+                throw new GP.StopException();
+            };
+            Log.Colors = gutil.colors;
+            return Log;
+        }());
+        Helpers.Log = Log;
+    })(Helpers = GP.Helpers || (GP.Helpers = {}));
+})(GP || (GP = {}));
+var GP;
+(function (GP) {
     var FileSystem = GP.Helpers.FileSystem;
     var Utils = GP.Helpers.Utils;
     var Log = GP.Helpers.Log;
@@ -171,269 +434,6 @@ var GP;
 })(GP || (GP = {}));
 var GP;
 (function (GP) {
-    var Helpers;
-    (function (Helpers) {
-        var extend = require('extend');
-        var isGlob = require('is-glob');
-        var Utils = (function () {
-            function Utils() {
-            }
-            Utils.isObject = function (input) {
-                return input !== null && typeof (input) === 'object';
-            };
-            Utils.isArray = function (input) {
-                return Array.isArray(input);
-            };
-            Utils.isUndefined = function (input) {
-                return typeof (input) === 'undefined';
-            };
-            Utils.isString = function (input, notEmpty) {
-                if (notEmpty === void 0) { notEmpty = false; }
-                return typeof (input) === 'string' && (!notEmpty || !!Utils.trim(input).length);
-            };
-            Utils.isSet = function (input) {
-                return input !== null && !Utils.isUndefined(input);
-            };
-            Utils.isGlob = function (input) {
-                if (Utils.isString(input)) {
-                    return isGlob(input);
-                }
-                return false;
-            };
-            Utils.isValidPath = function (input) {
-                var reg = /[‘“!#$%&+^<=>`]/;
-                return Utils.isString(input) && reg.test(input) && !Utils.isGlob(input);
-            };
-            Utils.isDefined = function (data, candidates, strict) {
-                if (strict === void 0) { strict = true; }
-                if (!Utils.isObject(data)) {
-                    return false;
-                }
-                if (!Utils.isArray(candidates)) {
-                    candidates = [candidates];
-                }
-                for (var i = 0; i < candidates.length; ++i) {
-                    if (!Utils.isUndefined(data[candidates[i]])) {
-                        if (strict !== true) {
-                            return true;
-                        }
-                    }
-                    else if (strict === true) {
-                        return false;
-                    }
-                }
-                return false;
-            };
-            Utils.asString = function (input) {
-                if (input === void 0) {
-                    return '[undefined]';
-                }
-                if (input === null) {
-                    return '[null]';
-                }
-                if (Utils.isArray(input)) {
-                    return '[object Array]';
-                }
-                return (typeof (input['toString']) === 'function') ? input.toString() : typeof (input);
-            };
-            Utils.ensureArray = function (input) {
-                if (Utils.isArray(input)) {
-                    return input;
-                }
-                if (input === null || Utils.isUndefined(input)) {
-                    return [];
-                }
-                return [input];
-            };
-            Utils.trim = function (str) {
-                return str.replace(/^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g, '');
-            };
-            Utils.pad = function (str, nb, c) {
-                if (c === void 0) { c = '0'; }
-                str = str + '';
-                return str.length >= nb ? str : (str + new Array(nb - str.length + 1).join(c));
-            };
-            Utils.deepCopy = function (input) {
-                if (Utils.isObject(input)) {
-                    return Utils.extend(true, {}, input);
-                }
-                return input;
-            };
-            Utils.extend = function () {
-                var objects = [];
-                for (var _i = 0; _i < arguments.length; _i++) {
-                    objects[_i - 0] = arguments[_i];
-                }
-                return extend.apply(null, objects);
-            };
-            Utils.clone = function (input) {
-                if (Utils.isArray(input)) {
-                    return input.slice();
-                }
-                if (Utils.isObject(input)) {
-                    return Utils.deepCopy(input);
-                }
-                return input;
-            };
-            Utils.equals = function (a, b) {
-                return JSON.stringify(Utils.generateHashData(a)) === JSON.stringify(Utils.generateHashData(b));
-            };
-            Utils.generateHashData = function (data) {
-                if (Utils.isArray(data)) {
-                    var output = [];
-                    for (var i = 0; i < data.length; ++i) {
-                        output.push(Utils.generateHashData(data[i]));
-                    }
-                    return output;
-                }
-                else if (Utils.isObject(data)) {
-                    var output = [];
-                    var keys = Object.keys(data);
-                    keys.sort();
-                    for (var i = 0; i < keys.length; ++i) {
-                        var k = keys[i];
-                        var obj = {};
-                        obj[k] = Utils.generateHashData(data[k]);
-                        output.push(obj);
-                    }
-                    return output;
-                }
-                if (Utils.isString(data)) {
-                    return Utils.slugify(data);
-                }
-                return data;
-            };
-            Utils.slugify = function (text) {
-                return text.toString().toLowerCase()
-                    .replace(/\s+/g, '-')
-                    .replace(/[^\w\-]+/g, '')
-                    .replace(/\-\-+/g, '-')
-                    .replace(/^-+/, '')
-                    .replace(/-+$/, '');
-            };
-            return Utils;
-        }());
-        Helpers.Utils = Utils;
-    })(Helpers = GP.Helpers || (GP.Helpers = {}));
-})(GP || (GP = {}));
-var GP;
-(function (GP) {
-    var Helpers;
-    (function (Helpers) {
-        var fs = require('fs');
-        var fspath = require('path');
-        var jsYaml = require('js-yaml');
-        var FileSystem = (function () {
-            function FileSystem() {
-            }
-            FileSystem.fileExists = function (path) {
-                try {
-                    return fs.statSync(path).isFile();
-                }
-                catch (e) {
-                    return false;
-                }
-            };
-            FileSystem.isDirectory = function (path) {
-                var stats = fs.lstatSync(path);
-                return stats && stats.isDirectory();
-            };
-            FileSystem.getExtension = function (path) {
-                var ext = fspath.extname(path).toLowerCase();
-                return ext && ext[0] === '.' ? ext.substring(1) : ext;
-            };
-            FileSystem.getAbsolutePath = function (path, from, ensureExists) {
-                if (from === void 0) { from = ''; }
-                if (ensureExists === void 0) { ensureExists = false; }
-                var resolved = fspath.resolve(from, path);
-                return !ensureExists || FileSystem.fileExists(resolved) ? resolved : null;
-            };
-            FileSystem.getFileContent = function (path) {
-                if (FileSystem.fileExists(path)) {
-                    return fs.readFileSync(path, 'utf-8');
-                }
-                Helpers.Log.error('File', Helpers.Log.Colors.red(path), 'does not exist.');
-                return null;
-            };
-            FileSystem.getYamlFileContent = function (path) {
-                try {
-                    var content = FileSystem.getFileContent(path);
-                    if (content !== null) {
-                        return jsYaml.safeLoad(content);
-                    }
-                }
-                catch (e) {
-                    Helpers.Log.error('Failed to read YAML file', Helpers.Log.Colors.magenta(path) + '.', 'Reason:', Helpers.Log.Colors.red(e.toString()));
-                }
-                return null;
-            };
-            FileSystem.getRelativePath = function (from, to) {
-                return fspath.relative(from, to);
-            };
-            FileSystem.getDirectoryName = function (path) {
-                return fspath.dirname(path);
-            };
-            Object.defineProperty(FileSystem, "separator", {
-                get: function () {
-                    return fspath.sep;
-                },
-                enumerable: true,
-                configurable: true
-            });
-            return FileSystem;
-        }());
-        Helpers.FileSystem = FileSystem;
-    })(Helpers = GP.Helpers || (GP.Helpers = {}));
-})(GP || (GP = {}));
-var GP;
-(function (GP) {
-    var Helpers;
-    (function (Helpers) {
-        var gutil = require('gulp-util');
-        var Log = (function () {
-            function Log() {
-            }
-            Log.info = function () {
-                var messages = [];
-                for (var _i = 0; _i < arguments.length; _i++) {
-                    messages[_i - 0] = arguments[_i];
-                }
-                gutil.log.apply(null, messages);
-            };
-            Log.warning = function () {
-                var messages = [];
-                for (var _i = 0; _i < arguments.length; _i++) {
-                    messages[_i - 0] = arguments[_i];
-                }
-                messages.unshift(gutil.colors.bgYellow.black('! WARNING !'));
-                gutil.log.apply(null, messages);
-            };
-            Log.error = function () {
-                var messages = [];
-                for (var _i = 0; _i < arguments.length; _i++) {
-                    messages[_i - 0] = arguments[_i];
-                }
-                messages.unshift(gutil.colors.bgRed.black('! ERROR !'));
-                gutil.log.apply(null, messages);
-            };
-            Log.fatal = function () {
-                var messages = [];
-                for (var _i = 0; _i < arguments.length; _i++) {
-                    messages[_i - 0] = arguments[_i];
-                }
-                messages.unshift(gutil.colors.bgYellow.black('! gulp-packages stops !'));
-                messages.unshift(gutil.colors.bgRed.black('!! FATAL ERROR !!'));
-                gutil.log.apply(null, messages);
-                throw new GP.StopException();
-            };
-            Log.Colors = gutil.colors;
-            return Log;
-        }());
-        Helpers.Log = Log;
-    })(Helpers = GP.Helpers || (GP.Helpers = {}));
-})(GP || (GP = {}));
-var GP;
-(function (GP) {
     var StopException = (function (_super) {
         __extends(StopException, _super);
         function StopException() {
@@ -446,8 +446,8 @@ var GP;
 var GP;
 (function (GP) {
     var FileSystem = GP.Helpers.FileSystem;
-    var Log = GP.Helpers.Log;
     var Utils = GP.Helpers.Utils;
+    var Log = GP.Helpers.Log;
     var loadedConfigurationsMaxId = 0;
     var loadedConfigurations = [];
     var loadingStack = [];

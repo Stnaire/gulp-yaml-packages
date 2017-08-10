@@ -1,6 +1,6 @@
 
 namespace GP.Helpers {
-    var gutil = require('gulp-util');
+    let gutil = require('gulp-util');
 
     export class Log {
         static Colors = gutil.colors;
@@ -8,7 +8,7 @@ namespace GP.Helpers {
         /**
          * Display an info to the user.
          *
-         * @param string[] messages
+         * @param {string[]} messages
          */
         static info(...messages: string[]): void {
             gutil.log.apply(null, messages);
@@ -17,7 +17,7 @@ namespace GP.Helpers {
         /**
          * Display a warning to the user.
          *
-         * @param string[] messages
+         * @param {string[]} messages
          */
         static warning(...messages: string[]): void {
             messages.unshift(gutil.colors.bgYellow.black('! WARNING !'));
@@ -27,7 +27,7 @@ namespace GP.Helpers {
         /**
          * Display an error to the user.
          *
-         * @param string[] messages
+         * @param {string[]} messages
          */
         static error(...messages: string[]): void {
             messages.unshift(gutil.colors.bgRed.black('! ERROR !'));
@@ -37,7 +37,7 @@ namespace GP.Helpers {
         /**
          * Show a fatal error to the user and stops the execution.
          *
-         * @param string[] messages
+         * @param {string[]} messages
          */
         static fatal(...messages: string[]): void {
             messages.unshift(gutil.colors.bgYellow.black('! gulp-packages stops !'));

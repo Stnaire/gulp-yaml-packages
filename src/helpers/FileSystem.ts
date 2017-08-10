@@ -1,16 +1,16 @@
 
-
 namespace GP.Helpers {
-    var fs = require('fs');
-    var fspath = require('path');
-    var jsYaml = require('js-yaml');
+    let fs = require('fs');
+    let fspath = require('path');
+    let jsYaml = require('js-yaml');
 
     export class FileSystem {
         /**
          * Test if a file exists.
          *
-         * @param string path
-         * @returns boolean
+         * @param {string} path
+         *
+         * @returns {boolean}
          */
         static fileExists(path: string): boolean {
             try {
@@ -23,43 +23,47 @@ namespace GP.Helpers {
         /**
          * Tests if a path point to a directory.
          *
-         * @param string path
-         * @returns boolean
+         * @param {string} path
+         *
+         * @returns {boolean}
          */
         static isDirectory(path: string): boolean {
-            var stats = fs.lstatSync(path);
+            let stats = fs.lstatSync(path);
             return stats && stats.isDirectory();
         }
 
         /**
          * Get a file extension.
          *
-         * @param string path
-         * @returns string
+         * @param {string} path
+         *
+         * @returns {string}
          */
         static getExtension(path: string): string {
-            var ext = fspath.extname(path).toLowerCase();
+            let ext = fspath.extname(path).toLowerCase();
             return ext && ext[0] === '.' ? ext.substring(1) : ext;
         }
 
         /**
          * Ensure a path is absolute and optionally that the file exists.
          *
-         * @param string  path
-         * @param string  from
-         * @param boolean ensureExists
-         * @returns string
+         * @param {string}  path
+         * @param {string}  from
+         * @param {boolean} ensureExists
+         *
+         * @returns {string}
          */
         static getAbsolutePath(path: string, from: string = '', ensureExists: boolean = false): string {
-            var resolved = fspath.resolve(from, path);
+            let resolved = fspath.resolve(from, path);
             return !ensureExists || FileSystem.fileExists(resolved) ? resolved : null;
         }
 
         /**
          * Synchronously reads the entire contents of a file.
          *
-         * @param string path
-         * @returns string
+         * @param {string} path
+         *
+         * @returns {string}
          */
         static getFileContent(path: string): string {
             if (FileSystem.fileExists(path)) {
@@ -72,12 +76,13 @@ namespace GP.Helpers {
         /**
          * Safely reads a YAML file, parse it and returns its content as an object.
          *
-         * @param string path
-         * @return object
+         * @param {string} path
+         *
+         * @return {object}
          */
         static getYamlFileContent(path: string): Object {
             try {
-                var content = FileSystem.getFileContent(path);
+                let content = FileSystem.getFileContent(path);
                 if (content !== null) {
                     return jsYaml.safeLoad(content);
                 }
@@ -93,9 +98,10 @@ namespace GP.Helpers {
         /**
          * Solve the relative path from from to to.
          *
-         * @param string from
-         * @param string to
-         * @returns string
+         * @param {string} from
+         * @param {string} to
+         *
+         * @returns {string}
          */
         static getRelativePath(from: string, to: string) {
             return fspath.relative(from, to);
@@ -104,8 +110,9 @@ namespace GP.Helpers {
         /**
          * Get the directory name of a path.
          *
-         * @param string path
-         * @returns string
+         * @param {string} path
+         *
+         * @returns {string}
          */
         static getDirectoryName(path: string) {
             return fspath.dirname(path);
@@ -114,7 +121,7 @@ namespace GP.Helpers {
         /**
          * Gets the directory separator.
          *
-         * @returns string
+         * @returns {string}
          */
         static get separator(): string {
             return fspath.sep;
