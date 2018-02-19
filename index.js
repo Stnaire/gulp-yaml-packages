@@ -7,75 +7,6 @@ var GP;
 (function (GP) {
     var Helpers;
     (function (Helpers) {
-        var fs = require('fs');
-        var fspath = require('path');
-        var jsYaml = require('js-yaml');
-        var FileSystem = (function () {
-            function FileSystem() {
-            }
-            FileSystem.fileExists = function (path) {
-                try {
-                    return fs.statSync(path).isFile();
-                }
-                catch (e) {
-                    return false;
-                }
-            };
-            FileSystem.isDirectory = function (path) {
-                var stats = fs.lstatSync(path);
-                return stats && stats.isDirectory();
-            };
-            FileSystem.getExtension = function (path) {
-                var ext = fspath.extname(path).toLowerCase();
-                return ext && ext[0] === '.' ? ext.substring(1) : ext;
-            };
-            FileSystem.getAbsolutePath = function (path, from, ensureExists) {
-                if (from === void 0) { from = ''; }
-                if (ensureExists === void 0) { ensureExists = false; }
-                var resolved = fspath.resolve(from, path);
-                return !ensureExists || FileSystem.fileExists(resolved) ? resolved : null;
-            };
-            FileSystem.getFileContent = function (path) {
-                if (FileSystem.fileExists(path)) {
-                    return fs.readFileSync(path, 'utf-8');
-                }
-                Helpers.Log.error('File', Helpers.Log.Colors.red(path), 'does not exist.');
-                return null;
-            };
-            FileSystem.getYamlFileContent = function (path) {
-                try {
-                    var content = FileSystem.getFileContent(path);
-                    if (content !== null) {
-                        return jsYaml.safeLoad(content);
-                    }
-                }
-                catch (e) {
-                    Helpers.Log.error('Failed to read YAML file', Helpers.Log.Colors.magenta(path) + '.', 'Reason:', Helpers.Log.Colors.red(e.toString()));
-                }
-                return null;
-            };
-            FileSystem.getRelativePath = function (from, to) {
-                return fspath.relative(from, to);
-            };
-            FileSystem.getDirectoryName = function (path) {
-                return fspath.dirname(path);
-            };
-            Object.defineProperty(FileSystem, "separator", {
-                get: function () {
-                    return fspath.sep;
-                },
-                enumerable: true,
-                configurable: true
-            });
-            return FileSystem;
-        }());
-        Helpers.FileSystem = FileSystem;
-    })(Helpers = GP.Helpers || (GP.Helpers = {}));
-})(GP || (GP = {}));
-var GP;
-(function (GP) {
-    var Helpers;
-    (function (Helpers) {
         var extend = require('extend');
         var isGlob = require('is-glob');
         var Utils = (function () {
@@ -223,6 +154,75 @@ var GP;
 (function (GP) {
     var Helpers;
     (function (Helpers) {
+        var fs = require('fs');
+        var fspath = require('path');
+        var jsYaml = require('js-yaml');
+        var FileSystem = (function () {
+            function FileSystem() {
+            }
+            FileSystem.fileExists = function (path) {
+                try {
+                    return fs.statSync(path).isFile();
+                }
+                catch (e) {
+                    return false;
+                }
+            };
+            FileSystem.isDirectory = function (path) {
+                var stats = fs.lstatSync(path);
+                return stats && stats.isDirectory();
+            };
+            FileSystem.getExtension = function (path) {
+                var ext = fspath.extname(path).toLowerCase();
+                return ext && ext[0] === '.' ? ext.substring(1) : ext;
+            };
+            FileSystem.getAbsolutePath = function (path, from, ensureExists) {
+                if (from === void 0) { from = ''; }
+                if (ensureExists === void 0) { ensureExists = false; }
+                var resolved = fspath.resolve(from, path);
+                return !ensureExists || FileSystem.fileExists(resolved) ? resolved : null;
+            };
+            FileSystem.getFileContent = function (path) {
+                if (FileSystem.fileExists(path)) {
+                    return fs.readFileSync(path, 'utf-8');
+                }
+                Helpers.Log.error('File', Helpers.Log.Colors.red(path), 'does not exist.');
+                return null;
+            };
+            FileSystem.getYamlFileContent = function (path) {
+                try {
+                    var content = FileSystem.getFileContent(path);
+                    if (content !== null) {
+                        return jsYaml.safeLoad(content);
+                    }
+                }
+                catch (e) {
+                    Helpers.Log.error('Failed to read YAML file', Helpers.Log.Colors.magenta(path) + '.', 'Reason:', Helpers.Log.Colors.red(e.toString()));
+                }
+                return null;
+            };
+            FileSystem.getRelativePath = function (from, to) {
+                return fspath.relative(from, to);
+            };
+            FileSystem.getDirectoryName = function (path) {
+                return fspath.dirname(path);
+            };
+            Object.defineProperty(FileSystem, "separator", {
+                get: function () {
+                    return fspath.sep;
+                },
+                enumerable: true,
+                configurable: true
+            });
+            return FileSystem;
+        }());
+        Helpers.FileSystem = FileSystem;
+    })(Helpers = GP.Helpers || (GP.Helpers = {}));
+})(GP || (GP = {}));
+var GP;
+(function (GP) {
+    var Helpers;
+    (function (Helpers) {
         var gutil = require('gulp-util');
         var Log = (function () {
             function Log() {
@@ -265,6 +265,17 @@ var GP;
         }());
         Helpers.Log = Log;
     })(Helpers = GP.Helpers || (GP.Helpers = {}));
+})(GP || (GP = {}));
+var GP;
+(function (GP) {
+    var StopException = (function (_super) {
+        __extends(StopException, _super);
+        function StopException() {
+            _super.apply(this, arguments);
+        }
+        return StopException;
+    }(Error));
+    GP.StopException = StopException;
 })(GP || (GP = {}));
 var GP;
 (function (GP) {
@@ -431,17 +442,6 @@ var GP;
         return ProcessorsManager;
     }());
     GP.ProcessorsManager = ProcessorsManager;
-})(GP || (GP = {}));
-var GP;
-(function (GP) {
-    var StopException = (function (_super) {
-        __extends(StopException, _super);
-        function StopException() {
-            _super.apply(this, arguments);
-        }
-        return StopException;
-    }(Error));
-    GP.StopException = StopException;
 })(GP || (GP = {}));
 var GP;
 (function (GP) {
