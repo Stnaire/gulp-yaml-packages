@@ -41,6 +41,9 @@ namespace GP.Helpers {
          */
         static getExtension(path: string): string {
             let ext = fspath.extname(path).toLowerCase();
+            if (ext.length < 2 || ext[1] === '{') {
+                return null;
+            }
             return ext && ext[0] === '.' ? ext.substring(1) : ext;
         }
 

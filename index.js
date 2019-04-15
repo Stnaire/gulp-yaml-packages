@@ -179,6 +179,9 @@ var GP;
             };
             FileSystem.getExtension = function (path) {
                 var ext = fspath.extname(path).toLowerCase();
+                if (ext.length < 2 || ext[1] === '{') {
+                    return null;
+                }
                 return ext && ext[0] === '.' ? ext.substring(1) : ext;
             };
             FileSystem.getAbsolutePath = function (path, from, ensureExists) {
@@ -1641,6 +1644,8 @@ var GP;
     var Log = GP.Helpers.Log;
     var gutil = require('gulp-util');
     var watch = require('gulp-watch');
+    var crypto = require('crypto');
+    var gulpfile = null;
     var GulpFile = (function () {
         function GulpFile(_gulp) {
             this._gulp = _gulp;
@@ -1657,12 +1662,53 @@ var GP;
                 Log.warning('Invalid environment', "'" + Log.Colors.red(this.options.env) + "'.", 'Must be', "'" + Log.Colors.yellow('dev') + "'", 'or', "'" + Log.Colors.yellow('prod') + "'.");
                 this.options.env = 'dev';
             }
-            for (var i = 0; i < GulpFile.ResourcesTypes.length; ++i) {
-                this.tasks[GulpFile.ResourcesTypes[i]] = [];
-            }
         }
+        Object.defineProperty(GulpFile.prototype, "gulp", {
+            get: function () {
+                return this._gulp;
+            },
+            enumerable: true,
+            configurable: true
+        });
         GulpFile.prototype.createTasks = function (path, processors) {
+            return this.createTasksForSeries(path, processors).concat(this.createTasksForParallel(path, processors));
+        };
+        GulpFile.prototype.createTasksForSeries = function (path, processors) {
             var tasksNames = [];
+            var hash = this.generateTasksForPath(path, processors);
+            for (var resourceType in this.tasks[hash].series) {
+                if (this.tasks[hash].series.hasOwnProperty(resourceType)) {
+                    for (var _i = 0, _a = this.tasks[hash].series[resourceType]; _i < _a.length; _i++) {
+                        var task = _a[_i];
+                        tasksNames.push(task.getName());
+                    }
+                }
+            }
+            return tasksNames;
+        };
+        GulpFile.prototype.createTasksForParallel = function (path, processors) {
+            var tasksNames = [];
+            var hash = this.generateTasksForPath(path, processors);
+            for (var resourceType in this.tasks[hash].parallel) {
+                if (this.tasks[hash].parallel.hasOwnProperty(resourceType)) {
+                    tasksNames = tasksNames.concat(this.tasks[hash].parallel[resourceType]);
+                }
+            }
+            return tasksNames;
+        };
+        GulpFile.prototype.generateTasksForPath = function (path, processors) {
+            var hash = crypto.createHash('md5').update(path).digest("hex");
+            if (!Utils.isUndefined(this.tasks[hash])) {
+                return hash;
+            }
+            this.tasks[hash] = { series: {}, parallel: {} };
+            for (var processingType in this.tasks[hash]) {
+                if (this.tasks[hash].hasOwnProperty(processingType)) {
+                    for (var i = 0; i < GulpFile.ResourcesTypes.length; ++i) {
+                        this.tasks[hash][processingType][GulpFile.ResourcesTypes[i]] = [];
+                    }
+                }
+            }
             var packageFile = new GP.PackageFile(path, this.options);
             var configuration = packageFile.getGulpfileConfiguration();
             if (configuration !== null) {
@@ -1688,38 +1734,25 @@ var GP;
                                     task = new GP.MiscTask(this, rt, conf[k], configuration.processors);
                                     break;
                             }
-                            this.tasks[rt].push(task);
+                            this.tasks[hash].series[rt].push(task);
                             this._gulp.task(task.getName(), (function (t) {
                                 return function () {
                                     return t.execute();
                                 };
                             })(task));
-                            tasksNames.push(task.getName());
                         }
                     }
                 }
                 if (this.options.watch) {
-                    Array.prototype.push.apply(tasksNames, this.createWatchTasks(configuration.packages));
+                    this.createWatchTasks(hash, configuration.packages);
                 }
             }
-            return tasksNames;
+            return hash;
         };
-        GulpFile.prototype.executeTasks = function (type) {
-            if (type === void 0) { type = null; }
-            var types = type === null ? Object.keys(this.tasks) : Utils.ensureArray(type);
-            for (var i = 0; i < types.length; ++i) {
-                var tasks = this.tasks[types[i]];
-                if (Utils.isArray(tasks)) {
-                    for (var j = 0; j < tasks.length; ++j) {
-                        tasks[j].execute();
-                    }
-                }
-            }
-        };
-        GulpFile.prototype.createWatchTasks = function (packages) {
+        GulpFile.prototype.createWatchTasks = function (hash, packages) {
             var files = {};
-            var tasksNames = [];
             var filesWatchedCount = 0;
+            var globWatchedCount = 0;
             var watchTasksCount = 0;
             for (var i = 0; i < packages.length; ++i) {
                 for (var j = 0; j < GulpFile.ResourcesTypes.length; ++j) {
@@ -1728,61 +1761,89 @@ var GP;
                     files[rt] = Utils.ensureArray(files[rt]);
                     for (var k = 0; k < conf.length; ++k) {
                         for (var l = 0; l < conf[k].watch.length; ++l) {
+                            if (this.options.verbose) {
+                                Log.info('Manually watching', "'" + Log.Colors.cyan(conf[k].watch[l].absolute) + "'");
+                            }
                             files[rt].push(conf[k].watch[l].absolute);
+                            globWatchedCount += conf[k].watch[l].isGlob ? 1 : 0;
+                            filesWatchedCount += !conf[k].watch[l].isGlob ? 1 : 0;
                         }
                         for (var l = 0; l < conf[k].input.length; ++l) {
                             for (var m = 0; m < conf[k].input[l].files.length; ++m) {
                                 var path = conf[k].input[l].files[m].absolute;
-                                if (files[rt].indexOf(path) < 0 && conf[k].autoWatch !== false) {
+                                if (files[rt].indexOf(path) < 0 && conf[k].autoWatch !== false && !path.match(/[\/\\]node_modules[\/\\]/)) {
                                     if (this.options.verbose) {
-                                        Log.info('Watching', "'" + Log.Colors.magenta(path) + "'");
+                                        Log.info('Auto watching', "'" + Log.Colors.magenta(path) + "'");
                                     }
                                     files[rt].push(path);
-                                    ++filesWatchedCount;
+                                    globWatchedCount += conf[k].input[l].files[m].isGlob ? 1 : 0;
+                                    filesWatchedCount += !conf[k].input[l].files[m].isGlob ? 1 : 0;
                                 }
                             }
                         }
                     }
                 }
             }
+            var firstTaskName = null;
             for (var type in files) {
                 if (files.hasOwnProperty(type) && files[type].length > 0) {
-                    var name_3 = '_gyp_watch_' + type;
-                    this._gulp.task(name_3, (function (that, rt, files) {
+                    var name_3 = '_gyp_watch_' + type + "_" + hash;
+                    firstTaskName = firstTaskName !== null ? firstTaskName : name_3;
+                    this.tasks[hash].parallel[type].push(name_3);
+                    this._gulp.task(name_3, (function (that, n, rt, files) {
                         return function () {
+                            if (firstTaskName === n) {
+                                Log.info(Log.Colors.yellow('Watching'), Log.Colors.magenta(filesWatchedCount), 'files and', Log.Colors.magenta(globWatchedCount), 'globs in total. Using', Log.Colors.magenta(watchTasksCount), 'tasks.');
+                            }
                             watch(files, function (file) {
                                 Log.info('Change on', "'" + Log.Colors.magenta(file.path) + "'");
-                                that.executeTasks(rt);
+                                for (var j = 0; j < that.tasks[hash].series[rt].length; ++j) {
+                                    that.tasks[hash].series[rt][j].execute();
+                                }
                             });
                         };
-                    })(this, type, files[type]));
-                    tasksNames.push(name_3);
+                    })(this, name_3, type, files[type]));
                     ++watchTasksCount;
                 }
             }
-            Log.info('Watching', "'" + Log.Colors.magenta(filesWatchedCount) + "'", 'files in total using', "'" + Log.Colors.magenta(watchTasksCount) + "'", 'tasks.');
-            return tasksNames;
         };
-        Object.defineProperty(GulpFile.prototype, "gulp", {
-            get: function () {
-                return this._gulp;
-            },
-            enumerable: true,
-            configurable: true
-        });
         GulpFile.ResourcesTypes = ['scripts', 'styles', 'misc'];
         return GulpFile;
     }());
     GP.GulpFile = GulpFile;
+    function getGulpFileInstance(gulp) {
+        if (gulpfile === null) {
+            gulpfile = new GulpFile(gulp);
+        }
+        return gulpfile;
+    }
     module.exports.load = function (path, gulp, processors) {
         if (processors === void 0) { processors = {}; }
         try {
-            var gulpfile = new GulpFile(gulp);
-            return gulpfile.createTasks(path, processors);
+            return getGulpFileInstance(gulp).createTasks(path, processors);
         }
         catch (e) {
             if (e instanceof GP.StopException) {
                 return [];
+            }
+            throw e;
+        }
+    };
+    module.exports.loadForGulp4 = function (path, gulp, processors) {
+        if (processors === void 0) { processors = {}; }
+        try {
+            var gulpfile_1 = getGulpFileInstance(gulp);
+            return {
+                series: gulpfile_1.createTasksForSeries(path, processors),
+                parallel: gulpfile_1.createTasksForParallel(path, processors)
+            };
+        }
+        catch (e) {
+            if (e instanceof GP.StopException) {
+                return {
+                    series: [],
+                    parallel: []
+                };
             }
             throw e;
         }

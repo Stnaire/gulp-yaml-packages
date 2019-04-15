@@ -6,12 +6,14 @@
     
     var gulp = require('gulp');
     var loader = require('gulp-yaml-packages');
-    var tasks = loader.load(__dirname+'/app/config/minimalist-demo-packages/app.packages.yml', gulp);
+    var tasks = loader.loadForGulp4(__dirname+'/app/config/minimalist-demo-packages/app.packages.yml', gulp);
     
     gulp.task('myCustomTask', function(cb) {
         // Do some other work.
         cb();
     });
-    
-    gulp.task('default', gulp.series.call(gulp, ['myCustomTask'].concat(tasks)));
+    gulp.task('default', gulp.series(
+        gulp.series.call(gulp, ['myCustomTask'].concat(tasks.series)),
+        tasks.parallel.length ? gulp.parallel.call(gulp, tasks.parallel) : []
+    ));
 })();
