@@ -1,12 +1,11 @@
 #
 # ./app/config/app.packages.yml
 #
-# The following file is a "real world" usage example I used in a Symfony project.
+# The following file is a "real world" usage example I used in a Symfony 3 project.
 # The idea is to compile every styles in a "app.css" and every scripts in a "app.js".
 # Same for vendors with a "vendor.css" and "vendor.js".
 #
 # I used SASS for styles, one single SASS includes everything needed for the app.
-# This file is called
 #
 imports:
   - '%root_dir%/app/config/packages/vendors.packages.yml'

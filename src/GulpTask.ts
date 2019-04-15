@@ -133,10 +133,10 @@ namespace GP {
                 }
                 queue.push(stream);
             }
-            if (queue.length) {
-                return series.apply(this, queue);
+            if (!queue.length) {
+                return null;
             }
-            return this.gulpfile.gulp.src([]);
+            return series.apply(this, queue);
         }
 
         /**

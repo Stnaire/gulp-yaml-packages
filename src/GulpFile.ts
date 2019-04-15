@@ -5,8 +5,8 @@ namespace GP {
     import Utils = GP.Helpers.Utils;
     import Log = GP.Helpers.Log;
 
-    let gutil = require('gulp-util');
-    let watch = require('gulp-watch');
+    const gutil = require('gulp-util');
+    const watch = require('gulp-watch');
 
     export class GulpFile {
         /**
@@ -131,6 +131,8 @@ namespace GP {
         protected createWatchTasks(packages: GulpfileTaskConfiguration[]): string[] {
             let files: {[key: string]: string[]} = {};
             let tasksNames: string[] = [];
+            let filesWatchedCount: number = 0;
+            let watchTasksCount: number = 0;
 
             for (let i = 0; i < packages.length; ++i) {
                 for (let j = 0; j < GulpFile.ResourcesTypes.length; ++j) {
@@ -145,11 +147,12 @@ namespace GP {
                         for (let l = 0; l < conf[k].input.length; ++l) {
                             for (let m = 0; m < conf[k].input[l].files.length; ++m) {
                                 let path = conf[k].input[l].files[m].absolute;
-                                if (files[rt].indexOf(path) < 0) {
+                                if (files[rt].indexOf(path) < 0 && conf[k].autoWatch !== false) {
                                     if (this.options.verbose) {
                                         Log.info('Watching', "'" + Log.Colors.magenta(path) + "'");
                                     }
                                     files[rt].push(path);
+                                    ++filesWatchedCount;
                                 }
                             }
                         }
@@ -168,8 +171,13 @@ namespace GP {
                         };
                     })(this, type, files[type]));
                     tasksNames.push(name);
+                    ++watchTasksCount;
                 }
             }
+            Log.info(
+                'Watching', "'" + Log.Colors.magenta(filesWatchedCount) + "'", 'files in total using',
+                "'" + Log.Colors.magenta(watchTasksCount) + "'", 'tasks.'
+            );
             return tasksNames;
         }
 

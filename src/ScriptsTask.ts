@@ -2,7 +2,6 @@
 /// <reference path="helpers/Utils.ts" />
 
 namespace GP {
-    import Utils = GP.Helpers.Utils;
     import FileSystem = GP.Helpers.FileSystem;
 
     let gulpif = require('gulp-if');
@@ -29,14 +28,18 @@ namespace GP {
          * @returns {object}
          */
         protected createStream(inputs: GulpfileInputConfiguration[]): any {
-            let env = this.gulpfile.options.env;
-            return super.createStream(inputs)
-                .pipe(gulpif(env === 'dev', sourcemaps.init()))
-                .pipe(gulpif(env === 'prod', uglifyjs()))
-                .pipe(gulpif(env === 'dev', relativeSourcesmaps({dest: 'tmp'})))
-                .pipe(concat(this.outputPath))
-                .pipe(gulpif(env === 'dev', sourcemaps.write()))
-                .pipe(this.gulpfile.gulp.dest(FileSystem.getDirectoryName(this.outputPath)));
+            const env = this.gulpfile.options.env;
+            const stream: any = super.createStream(inputs);
+            if (stream !== null) {
+                return stream
+                    .pipe(gulpif(env === 'dev', sourcemaps.init()))
+                    .pipe(gulpif(env === 'prod', uglifyjs()))
+                    .pipe(gulpif(env === 'dev', relativeSourcesmaps({dest: 'tmp'})))
+                    .pipe(concat(FileSystem.getRelativePath(FileSystem.getDirectoryName(this.outputPath), this.outputPath)))
+                    .pipe(gulpif(env === 'dev', sourcemaps.write()))
+                    .pipe(this.gulpfile.gulp.dest(FileSystem.getDirectoryName(this.outputPath)));
+            }
+            return null;
         }
     }
 }

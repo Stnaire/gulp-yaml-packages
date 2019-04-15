@@ -17,6 +17,7 @@ packages:
       deps: [bootstrap:%_theme%]
       scripts:
         output: '%root_dir%/web/js/vendor.js'
+        autoWatch: false
       styles:
         output: '%root_dir%/web/css/vendor.css'
 

@@ -23,10 +23,14 @@ namespace GP {
          *
          * @param {GulpfileInputConfiguration[]} inputs
          *
-         * @returns object
+         * @returns object|null
          */
         protected createStream(inputs: GulpfileInputConfiguration[]): any {
-            return super.createStream(inputs).pipe(this.gulpfile.gulp.dest(this.outputPath));
+            const stream: any = super.createStream(inputs);
+            if (stream !== null) {
+                return stream.pipe(this.gulpfile.gulp.dest(this.outputPath));
+            }
+            return null;
         }
 
         /**
@@ -94,10 +98,13 @@ namespace GP {
                     }
                 }
             }
-            let stream = super.execute();
+            let stream: any = super.execute();
             this.configuration.input = originalInputs;
             for (let i = 0; i < subTasks.length; ++i) {
-                stream = merge(stream, subTasks[i].execute());
+                const nextStream: any = subTasks[i].execute();
+                if (nextStream !== null) {
+                    stream = (stream !== null) ? merge(stream, nextStream) : nextStream;
+                }
             }
             return stream;
         }

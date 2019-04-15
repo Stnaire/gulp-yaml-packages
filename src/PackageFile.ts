@@ -110,6 +110,7 @@ namespace GP {
             let output: PackageInputOutputConfiguration = {
                 watch: [],
                 input: [],
+                autoWatch: configuration ? configuration.autoWatch : undefined,
                 output: configuration && configuration.output ? (Utils.extend({}, configuration.output) as PackageOutputConfiguration) : null
             };
             for (let i = 0; i < deps.length; ++i) {
@@ -522,6 +523,9 @@ namespace GP {
                     input: this.normalizePackageInput(raw['input']),
                     output: this.normalizePackageOutput(raw['output'])
                 };
+                if (!Utils.isUndefined(raw['autoWatch'])) {
+                    output.autoWatch = !!raw['autoWatch'];
+                }
             } else {
                 Log.error(
                     'Invalid value',

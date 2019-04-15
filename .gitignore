@@ -1,11 +1,6 @@
-# PHP Storm
 /.idea
-
-# Ignore nodeJS modules
 /node_modules
-
-# Ignore vendor dir managed by bower
 /app/Resources/vendor
-
-# Ignore the web directory managed by the gulpfile
 /web
+package-lock.json
+index.js.map

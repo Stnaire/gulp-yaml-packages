@@ -1,8 +1,13 @@
-var __extends = (this && this.__extends) || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-};
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 var GP;
 (function (GP) {
     var Helpers;
@@ -96,7 +101,7 @@ var GP;
             Utils.extend = function () {
                 var objects = [];
                 for (var _i = 0; _i < arguments.length; _i++) {
-                    objects[_i - 0] = arguments[_i];
+                    objects[_i] = arguments[_i];
                 }
                 return extend.apply(null, objects);
             };
@@ -230,14 +235,14 @@ var GP;
             Log.info = function () {
                 var messages = [];
                 for (var _i = 0; _i < arguments.length; _i++) {
-                    messages[_i - 0] = arguments[_i];
+                    messages[_i] = arguments[_i];
                 }
                 gutil.log.apply(null, messages);
             };
             Log.warning = function () {
                 var messages = [];
                 for (var _i = 0; _i < arguments.length; _i++) {
-                    messages[_i - 0] = arguments[_i];
+                    messages[_i] = arguments[_i];
                 }
                 messages.unshift(gutil.colors.bgYellow.black('! WARNING !'));
                 gutil.log.apply(null, messages);
@@ -245,7 +250,7 @@ var GP;
             Log.error = function () {
                 var messages = [];
                 for (var _i = 0; _i < arguments.length; _i++) {
-                    messages[_i - 0] = arguments[_i];
+                    messages[_i] = arguments[_i];
                 }
                 messages.unshift(gutil.colors.bgRed.black('! ERROR !'));
                 gutil.log.apply(null, messages);
@@ -253,7 +258,7 @@ var GP;
             Log.fatal = function () {
                 var messages = [];
                 for (var _i = 0; _i < arguments.length; _i++) {
-                    messages[_i - 0] = arguments[_i];
+                    messages[_i] = arguments[_i];
                 }
                 messages.unshift(gutil.colors.bgYellow.black('! gulp-packages stops !'));
                 messages.unshift(gutil.colors.bgRed.black('!! FATAL ERROR !!'));
@@ -271,7 +276,7 @@ var GP;
     var StopException = (function (_super) {
         __extends(StopException, _super);
         function StopException() {
-            _super.apply(this, arguments);
+            return _super !== null && _super.apply(this, arguments) || this;
         }
         return StopException;
     }(Error));
@@ -517,6 +522,7 @@ var GP;
             var output = {
                 watch: [],
                 input: [],
+                autoWatch: configuration ? configuration.autoWatch : undefined,
                 output: configuration && configuration.output ? Utils.extend({}, configuration.output) : null
             };
             for (var i = 0; i < deps.length; ++i) {
@@ -805,6 +811,9 @@ var GP;
                     input: this.normalizePackageInput(raw['input']),
                     output: this.normalizePackageOutput(raw['output'])
                 };
+                if (!Utils.isUndefined(raw['autoWatch'])) {
+                    output.autoWatch = !!raw['autoWatch'];
+                }
             }
             else {
                 Log.error('Invalid value', "'" + Log.Colors.red(Utils.asString(raw)) + "'.", 'An object with an input and/or an output key is expected.', this.getContextString());
@@ -1380,7 +1389,7 @@ var GP;
             var queue = [];
             var that = this;
             var addedFiles = [];
-            var _loop_1 = function(i) {
+            var _loop_1 = function (i) {
                 if (this_1.gulpfile.options.verbose) {
                     Log.info(Log.Colors.green('New stream'));
                 }
@@ -1443,10 +1452,10 @@ var GP;
             for (var i = 0; i < inputs.length; ++i) {
                 _loop_1(i);
             }
-            if (queue.length) {
-                return series.apply(this, queue);
+            if (!queue.length) {
+                return null;
             }
-            return this.gulpfile.gulp.src([]);
+            return series.apply(this, queue);
         };
         GulpTask.prototype.prepareInputs = function () {
             var inputs = [];
@@ -1494,20 +1503,24 @@ var GP;
     var ScriptsTask = (function (_super) {
         __extends(ScriptsTask, _super);
         function ScriptsTask() {
-            _super.apply(this, arguments);
+            return _super !== null && _super.apply(this, arguments) || this;
         }
         ScriptsTask.prototype.getType = function () {
             return 'scripts';
         };
         ScriptsTask.prototype.createStream = function (inputs) {
             var env = this.gulpfile.options.env;
-            return _super.prototype.createStream.call(this, inputs)
-                .pipe(gulpif(env === 'dev', sourcemaps.init()))
-                .pipe(gulpif(env === 'prod', uglifyjs()))
-                .pipe(gulpif(env === 'dev', relativeSourcesmaps({ dest: 'tmp' })))
-                .pipe(concat(this.outputPath))
-                .pipe(gulpif(env === 'dev', sourcemaps.write()))
-                .pipe(this.gulpfile.gulp.dest(FileSystem.getDirectoryName(this.outputPath)));
+            var stream = _super.prototype.createStream.call(this, inputs);
+            if (stream !== null) {
+                return stream
+                    .pipe(gulpif(env === 'dev', sourcemaps.init()))
+                    .pipe(gulpif(env === 'prod', uglifyjs()))
+                    .pipe(gulpif(env === 'dev', relativeSourcesmaps({ dest: 'tmp' })))
+                    .pipe(concat(FileSystem.getRelativePath(FileSystem.getDirectoryName(this.outputPath), this.outputPath)))
+                    .pipe(gulpif(env === 'dev', sourcemaps.write()))
+                    .pipe(this.gulpfile.gulp.dest(FileSystem.getDirectoryName(this.outputPath)));
+            }
+            return null;
         };
         return ScriptsTask;
     }(GP.GulpTask));
@@ -1524,20 +1537,24 @@ var GP;
     var StylesTask = (function (_super) {
         __extends(StylesTask, _super);
         function StylesTask() {
-            _super.apply(this, arguments);
+            return _super !== null && _super.apply(this, arguments) || this;
         }
         StylesTask.prototype.getType = function () {
             return 'styles';
         };
         StylesTask.prototype.createStream = function (inputs) {
             var env = this.gulpfile.options.env;
-            return _super.prototype.createStream.call(this, inputs)
-                .pipe(gulpif(env === 'dev', sourcemaps.init()))
-                .pipe(gulpif(env === 'prod', uglifycss()))
-                .pipe(gulpif(env === 'dev', relativeSourcesmaps({ dest: 'tmp' })))
-                .pipe(concat(this.outputPath))
-                .pipe(gulpif(env === 'dev', sourcemaps.write()))
-                .pipe(this.gulpfile.gulp.dest(FileSystem.getDirectoryName(this.outputPath)));
+            var stream = _super.prototype.createStream.call(this, inputs);
+            if (stream !== null) {
+                return stream
+                    .pipe(gulpif(env === 'dev', sourcemaps.init()))
+                    .pipe(gulpif(env === 'prod', uglifycss()))
+                    .pipe(gulpif(env === 'dev', relativeSourcesmaps({ dest: 'tmp' })))
+                    .pipe(concat(FileSystem.getRelativePath(FileSystem.getDirectoryName(this.outputPath), this.outputPath)))
+                    .pipe(gulpif(env === 'dev', sourcemaps.write()))
+                    .pipe(this.gulpfile.gulp.dest(FileSystem.getDirectoryName(this.outputPath)));
+            }
+            return null;
         };
         return StylesTask;
     }(GP.GulpTask));
@@ -1552,13 +1569,17 @@ var GP;
     var MiscTask = (function (_super) {
         __extends(MiscTask, _super);
         function MiscTask() {
-            _super.apply(this, arguments);
+            return _super !== null && _super.apply(this, arguments) || this;
         }
         MiscTask.prototype.getType = function () {
             return 'misc';
         };
         MiscTask.prototype.createStream = function (inputs) {
-            return _super.prototype.createStream.call(this, inputs).pipe(this.gulpfile.gulp.dest(this.outputPath));
+            var stream = _super.prototype.createStream.call(this, inputs);
+            if (stream !== null) {
+                return stream.pipe(this.gulpfile.gulp.dest(this.outputPath));
+            }
+            return null;
         };
         MiscTask.prototype.execute = function () {
             var subTasks = [];
@@ -1603,7 +1624,10 @@ var GP;
             var stream = _super.prototype.execute.call(this);
             this.configuration.input = originalInputs;
             for (var i = 0; i < subTasks.length; ++i) {
-                stream = merge(stream, subTasks[i].execute());
+                var nextStream = subTasks[i].execute();
+                if (nextStream !== null) {
+                    stream = (stream !== null) ? merge(stream, nextStream) : nextStream;
+                }
             }
             return stream;
         };
@@ -1695,6 +1719,8 @@ var GP;
         GulpFile.prototype.createWatchTasks = function (packages) {
             var files = {};
             var tasksNames = [];
+            var filesWatchedCount = 0;
+            var watchTasksCount = 0;
             for (var i = 0; i < packages.length; ++i) {
                 for (var j = 0; j < GulpFile.ResourcesTypes.length; ++j) {
                     var rt = GulpFile.ResourcesTypes[j];
@@ -1707,11 +1733,12 @@ var GP;
                         for (var l = 0; l < conf[k].input.length; ++l) {
                             for (var m = 0; m < conf[k].input[l].files.length; ++m) {
                                 var path = conf[k].input[l].files[m].absolute;
-                                if (files[rt].indexOf(path) < 0) {
+                                if (files[rt].indexOf(path) < 0 && conf[k].autoWatch !== false) {
                                     if (this.options.verbose) {
                                         Log.info('Watching', "'" + Log.Colors.magenta(path) + "'");
                                     }
                                     files[rt].push(path);
+                                    ++filesWatchedCount;
                                 }
                             }
                         }
@@ -1730,8 +1757,10 @@ var GP;
                         };
                     })(this, type, files[type]));
                     tasksNames.push(name_3);
+                    ++watchTasksCount;
                 }
             }
+            Log.info('Watching', "'" + Log.Colors.magenta(filesWatchedCount) + "'", 'files in total using', "'" + Log.Colors.magenta(watchTasksCount) + "'", 'tasks.');
             return tasksNames;
         };
         Object.defineProperty(GulpFile.prototype, "gulp", {

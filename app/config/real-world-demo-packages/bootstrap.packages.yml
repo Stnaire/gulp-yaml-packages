@@ -16,6 +16,7 @@ packages:
       deps: jquery
       theme: shared
       standalone: false
+      autoWatch: false
       scripts: '%vendor_dir%/bootstrap-sass/assets/javascripts/bootstrap.js'
       misc:
         input: '%vendor_dir%/bootstrap-sass/assets/fonts/bootstrap/**'

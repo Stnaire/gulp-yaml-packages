@@ -54,6 +54,7 @@ declare namespace GP {
 
     export interface PackageInputOutputConfiguration {
         watch: Path[];
+        autoWatch?: boolean;
         input: PackageInputConfiguration[];
         output: PackageOutputConfiguration;
     }
