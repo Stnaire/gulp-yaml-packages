@@ -34,6 +34,8 @@ The configuration file will be far more readable when your project uses a lot of
 The YAML is then used to generate gulp tasks that you can execute in your gulpfile.
 Here an example on how to use it:
 
+With `Gulp 3`:
+
 ```javascript
 // gulpfile.js
 
@@ -42,6 +44,21 @@ var loader = require('gulp-yaml-packages');
 var tasks = loader.load(__dirname+'/app/config/gulp_packages.yml', gulp);
 
 gulp.task('default', tasks);
+```
+
+With `Gulp 4`:
+
+```javascript
+// gulpfile.js
+
+var gulp = require('gulp');
+var loader = require('gulp-yaml-packages');
+var tasks = loader.loadForGulp4(__dirname+'/app/config/app.packages.yml', gulp);
+
+gulp.task('default', gulp.series(
+    gulp.series.call(gulp, tasks.series),
+    tasks.parallel.length ? gulp.parallel.call(gulp, tasks.parallel) : []
+));
 ```
 
 So first `gulp` is required, then `gulp-yaml-packages`.
